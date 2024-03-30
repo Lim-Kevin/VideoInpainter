@@ -1,0 +1,4 @@
+[submodule "submodules/MiVOS-STCN"]
+	path = submodules/MiVOS-STCN
+	url = https://github.com/hkchengrex/MiVOS
+	branch = MiVOS-STCN
