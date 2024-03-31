@@ -7,21 +7,20 @@
   <body>
     <h1>Draw</h1>
     <div class="video_player">
-      <div class="container">
+      <div class="canvas_container">
         <canvas class="canvas" id="cv1"></canvas>
         <video class="video" id="vd1" onloadeddata="resize_canvas(this)">
           <source src="{{file_url}}" type="video/mp4">
         </video>
       </div>
-      <div class="timeline">
-        <div class="timeline_drag"></div>
-        <span class="timeline_progress"></span>
-      </div>
       <div class="controls">
         <button id="play-button" onclick="play_or_pause()" type="button">Play/Pause</button>
         <button id="save-button" onclick="save()" type="button">Save Mask</button>
       </div>
+      <input type="range" id="seekbar" min="0" max="{{num_frames}}" list="markers"/>
+      <datalist id="markers"></datalist>
     </div>
+    <p id="frames_display"></p>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/utils/Draggable.min.js"></script>

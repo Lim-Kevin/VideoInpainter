@@ -1,27 +1,9 @@
-var video = document.getElementById("vd1"),
-    timeline = document.getElementsByClassName('timeline')[0],
-    timelineProgress = document.getElementsByClassName('timeline_progress')[0],
-    drag = document.getElementsByClassName('timeline_drag')[0];
-
-// on interaction with video controls
-video.onplay = function () {
-    TweenMax.ticker.addEventListener('tick', vidUpdate);
-};
-video.onpause = function () {
-    TweenMax.ticker.removeEventListener('tick', vidUpdate);
-};
-video.onended = function () {
-    TweenMax.ticker.removeEventListener('tick', vidUpdate);
-    TweenMax.set(drag, {
-        x: (timeline.offsetWidth - drag.offsetWidth) // Make drag snap to end of timeline
-    });
-    TweenMax.set(timelineProgress, {
-        scaleX: (1)
-    });
-};
-
+/*
+    Setting up the canvas
+ */
 var canvas = document.getElementById("cv1"),
     ctx = canvas.getContext("2d");
+    video = document.getElementById("vd1")
 
 canvas.addEventListener("mousemove", function (e) {
     findxy('move', e)
@@ -38,6 +20,7 @@ canvas.addEventListener("mouseout", function (e) {
 
 var width, height
 
+// Sets the canvas to the same size as the video
 function resize_canvas(element) {
     width = element.offsetWidth;
     height = element.offsetHeight;
@@ -45,52 +28,7 @@ function resize_canvas(element) {
     canvas.height = height;
 }
 
-function play_or_pause() {
-    if (video.paused) {
-        video.play();
-    } else {
-        video.pause();
-    }
-}
-
-// Sync the timeline with the video duration
-function vidUpdate() {
-    TweenMax.set(timelineProgress, {
-        scaleX: (video.currentTime / video.duration)
-    });
-    TweenMax.set(drag, {
-        x: (video.currentTime / video.duration * timeline.offsetWidth)
-    });
-}
-
-// Make the timeline draggable
-Draggable.create(drag, {
-    type: 'x',
-    trigger: timeline,
-    bounds: timeline,
-    onPress: function (e) {
-        video.currentTime = this.x / this.maxX * video.duration;
-        TweenMax.set(this.target, {
-            x: this.pointerX - timeline.getBoundingClientRect().left
-        });
-        this.update();
-        var progress = this.x / timeline.offsetWidth;
-        TweenMax.set(timelineProgress, {
-            scaleX: progress
-        });
-    },
-    onDrag: function () {
-        video.currentTime = this.x / this.maxX * video.duration;
-        var progress = this.x / timeline.offsetWidth;
-        TweenMax.set(timelineProgress, {
-            scaleX: progress
-        });
-    },
-    onRelease: function (e) {
-        e.preventDefault();
-    }
-});
-
+// Configurations for the canvas
 var flag = false,
     prevX = 0,
     currX = 0,
@@ -142,6 +80,7 @@ function findxy(res, e) {
     }
 }
 
+// Saves the drawn mask
 function save() {
     const imageData = canvas.toDataURL('image/png');
     fetch('/save_image', {
@@ -159,4 +98,44 @@ function save() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
+}
+
+/*
+    Setting up the seekbar and video controls
+ */
+
+// Add options to datalist, which adds tick marks below the input slider
+var input = document.getElementById("seekbar")
+    datalist = document.getElementById("markers")
+var num_steps = input.max;
+for (var i = 0; i <= num_steps; i++) {
+    var option = document.createElement("option");
+    option.value = i;
+    datalist.appendChild(option);
+}
+
+
+var value = document.getElementById("frames_display");
+// Displays the number of the current frame shown
+function update_num_frame_diplay() {
+    value.textContent = "Frame: " + input.value + "/" + input.max;
+}
+update_num_frame_diplay()
+input.addEventListener("change", (event) => {
+  value.textContent = "Frame: " + event.target.value + "/" + input.max;
+});
+
+// var isPlaying = false;
+// function update_seekbar() {
+//     input.value = video.currentTime / video.duration * input.max;
+//     if (isPlaying) requestAnimationFrame(update_seekbar);
+//     update_num_frame_diplay()
+// }
+
+function play_or_pause() {
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
+    }
 }

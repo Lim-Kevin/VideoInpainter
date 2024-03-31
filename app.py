@@ -1,8 +1,10 @@
 import base64
 import os
+
 from flask import Flask, flash, request, redirect, url_for, send_from_directory, render_template, jsonify
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from werkzeug.utils import secure_filename
+
+from util.interactive_util import convert_to_mp4, get_num_frames
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -25,26 +27,6 @@ def allowed_file(filename):
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def convert_to_mp4(folder_path, filename):
-    """
-    Converts a saved video file to mp4
-
-    :param folder_path: Path from root to the folder where the video is saved
-    :param filename: Name of the video file
-    :return: The filename with a mp4 ending
-    """
-    file_path = os.path.join(folder_path, filename)
-    video = VideoFileClip(file_path)
-
-    output_filepath = file_path.split('.')[0] + ".mp4"
-    video.write_videofile(output_filepath)
-
-    os.remove(file_path)  # Delete original file
-    print(file_path)
-    mp4_filename = filename.split('.')[0] + ".mp4"
-    return mp4_filename
-
-
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
@@ -59,10 +41,12 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))  # Saving the uploaded file
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             mp4_filename = convert_to_mp4(app.config['UPLOAD_FOLDER'], filename)
             file_url = url_for("get_file", filename=mp4_filename)
-            return render_template('mask.html', file_url=file_url)
+
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], mp4_filename)
+            return render_template('mask.html', file_url=file_url, num_frames=get_num_frames(file_path))
         else:
             flash('File extension not allowed')
     return render_template('index.html')
