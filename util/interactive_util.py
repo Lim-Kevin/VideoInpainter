@@ -51,6 +51,10 @@ def save_frames(video_path, output_folder):
 
 
 def get_video_info(video_path):
+    """
+    :param video_path: Path from root to the video
+    :return: Number of frames and fps of a video
+    """
     video = cv2.VideoCapture(video_path)
     if not video.isOpened():
         print("Error: Unable to open video.")
