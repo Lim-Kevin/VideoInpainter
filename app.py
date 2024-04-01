@@ -1,10 +1,10 @@
 import base64
 import os
 
-from flask import Flask, flash, request, redirect, url_for, send_from_directory, render_template, jsonify
+from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify
 from werkzeug.utils import secure_filename
 
-from util.interactive_util import convert_to_mp4, get_num_frames
+from util.interactive_util import save_frames, get_video_info
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -15,7 +15,7 @@ SECRET_KEY = os.urandom(12)  # Set the secret key to a string of random symbols
 app.secret_key = SECRET_KEY
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # TODO: Maybe clear upload folder everytime before uploading new file
 
 app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
 
@@ -41,12 +41,15 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            mp4_filename = convert_to_mp4(app.config['UPLOAD_FOLDER'], filename)
-            file_url = url_for("get_file", filename=mp4_filename)
-
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], mp4_filename)
-            return render_template('mask.html', file_url=file_url, num_frames=get_num_frames(file_path))
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            # mp4_filename = convert_to_mp4(app.config['UPLOAD_FOLDER'], filename)
+            # file_url = url_for("get_file", filename=mp4_filename)
+            save_frames(file_path, os.path.join(app.config['UPLOAD_FOLDER'], 'frames'))
+            num_frames, fps = get_video_info(file_path)
+            # file_path = os.path.join(app.config['UPLOAD_FOLDER'], mp4_filename)
+            # return render_template('mask.html', file_url=file_url, num_frames=get_num_frames(file_path))
+            return render_template('mask.html', num_frames=num_frames, fps=fps)
         else:
             flash('File extension not allowed')
     return render_template('index.html')
@@ -72,6 +75,11 @@ def save_image():
 @app.route('/uploads/<filename>')
 def get_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
+@app.route('/frame/<num>')
+def get_frame(num):
+    return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), 'frame%s.png' % num)
 
 
 if __name__ == '__main__':

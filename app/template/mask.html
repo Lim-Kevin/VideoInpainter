@@ -9,21 +9,18 @@
     <div class="video_player">
       <div class="canvas_container">
         <canvas class="canvas" id="cv1"></canvas>
-        <video class="video" id="vd1" onloadeddata="resize_canvas(this)">
-          <source src="{{file_url}}" type="video/mp4">
-        </video>
+        <img id="slideshow" onload="resize_canvas(this)" src="{{url_for('get_frame', num=0)}}" />
       </div>
       <div class="controls">
         <button id="play-button" onclick="play_or_pause()" type="button">Play/Pause</button>
         <button id="save-button" onclick="save()" type="button">Save Mask</button>
       </div>
-      <input type="range" id="seekbar" min="0" max="{{num_frames}}" list="markers"/>
+      <input type="range" id="seekbar" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
       <datalist id="markers"></datalist>
     </div>
-    <p id="frames_display"></p>
+    <p id="frames_display">Frame: 1/{{num_frames}}</p>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/utils/Draggable.min.js"></script>
-    <script defer src="{{url_for('static', filename='mask.js')}}"></script>
+
+    <script defer src="{{url_for('static', filename='mask.js')}}", fps="{{fps}}", num_frames="{{num_frames}}"></script>
   </body>
 </html>

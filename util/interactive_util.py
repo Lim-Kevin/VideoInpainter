@@ -28,11 +28,34 @@ def convert_to_mp4(folder_path, filename):
     return mp4_filename
 
 
-def get_num_frames(video_path):
+def save_frames(video_path, output_folder):
+    """
+    Saves every frame of an uploaded video
+    :param video_path: Path from root to the video
+    :param output_folder: Path from root to the folder that should contain the frames
+    """
+    os.makedirs(output_folder, exist_ok=True)
+
+    cap = cv2.VideoCapture(video_path)
+    frame_count = 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            frame_path = os.path.join(output_folder, 'frame%d.png' % frame_count)
+            cv2.imwrite(frame_path, frame)
+            frame_count += 1
+        else:
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+def get_video_info(video_path):
     video = cv2.VideoCapture(video_path)
     if not video.isOpened():
         print("Error: Unable to open video.")
         return None
     num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = video.get(cv2.CAP_PROP_FPS)
     video.release()
-    return num_frames
+    return num_frames, fps
