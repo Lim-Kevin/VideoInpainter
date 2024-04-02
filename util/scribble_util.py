@@ -5,6 +5,7 @@ from submodules.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as 
 
 from submodules.Scribble_to_Mask.interactive import InteractiveManager
 
+
 def setup_manager(image, mask=None):
     """
     Copied from Scribble_to_mask submodule

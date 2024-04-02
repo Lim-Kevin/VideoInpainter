@@ -19,18 +19,26 @@
     background-color: rgba(255, 0, 0, 0.5);
 }
 
+.controls {
+    display: flex;
+}
+
+button {
+    flex: 1;
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    align-items: stretch;
+}
+
 #slideshow {
     width: inherit;
     max-height: 500px;
     position: absolute;
 }
 
-
-
-#play-button {
-    width: 50%;
-    height: fit-content;
-    margin: 20px;
+#play_button {
+    flex: 2;
 }
 
 #seekbar {
