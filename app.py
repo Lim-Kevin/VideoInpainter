@@ -43,12 +43,9 @@ def upload_file():
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
-            # mp4_filename = convert_to_mp4(app.config['UPLOAD_FOLDER'], filename)
-            # file_url = url_for("get_file", filename=mp4_filename)
+
             save_frames(file_path, os.path.join(app.config['UPLOAD_FOLDER'], 'frames'))
             num_frames, fps = get_video_info(file_path)
-            # file_path = os.path.join(app.config['UPLOAD_FOLDER'], mp4_filename)
-            # return render_template('mask.html', file_url=file_url, num_frames=get_num_frames(file_path))
             return render_template('mask.html', num_frames=num_frames, fps=fps)
         else:
             flash('File extension not allowed')
@@ -80,7 +77,6 @@ def get_file(filename):
 @app.route('/frame/<num>')
 def get_frame(num):
     return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), 'frame%s.png' % num)
-
 
 if __name__ == '__main__':
     app.run()
