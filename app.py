@@ -1,6 +1,9 @@
 import base64
 import os
+from io import BytesIO
 
+import numpy as np
+from PIL import Image
 from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify
 from werkzeug.utils import secure_filename
 
@@ -20,6 +23,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # TODO: Maybe clear upload folder eve
 app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
+
 
 
 def allowed_file(filename):
@@ -61,9 +65,10 @@ def save_image():
         image_data = image_data.replace('data:image/png;base64,', '')
         # Decode the base64 string to bytes
         image_bytes = base64.b64decode(image_data)
-        # Save the image to a file
-        with open(os.path.join(app.config['UPLOAD_FOLDER'], 'generated_mask.png'), 'wb') as f:
-            f.write(image_bytes)
+
+        image = Image.open(BytesIO(image_bytes)).convert('L')
+        image_array = np.array(image)
+        p_srb = np.where(image_array > 0, 1, 0) # Save image as an array with 1 where the scribble is
         return jsonify({'message': 'Image saved successfully.'}), 200
     else:
         return jsonify({'error': 'No image data found.'}), 400
