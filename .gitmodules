@@ -1,4 +1,3 @@
-[submodule "submodules/MiVOS-STCN"]
-	path = submodules/MiVOS-STCN
-	url = https://github.com/hkchengrex/MiVOS
-	branch = MiVOS-STCN
+[submodule "submodules/Scribble-to-Mask"]
+	path = submodules/Scribble-to-Mask
+	url = https://github.com/hkchengrex/Scribble-to-Mask
