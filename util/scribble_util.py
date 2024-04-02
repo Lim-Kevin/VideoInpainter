@@ -10,14 +10,13 @@ def setup_manager(image, mask=None):
     """
     Copied from Scribble_to_mask submodule
     :param image: Path to the saved image the scribble is on
-    :param: mask: Optional path to mask if one already exists
+    :param mask: Optional path to mask if one already exists
     """
     # network stuff
     net = S2M()
     net.load_state_dict(torch.load('submodules/Scribble_to_Mask/saves/s2m.pth'))
     net = net.cuda().eval()
     torch.set_grad_enabled(False)
-
     # Reading stuff
     image = cv2.imread(image, cv2.IMREAD_COLOR)
     h, w = image.shape[:2]

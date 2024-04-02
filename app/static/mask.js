@@ -90,7 +90,10 @@ function save() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({image_data: imageData}),
+        body: JSON.stringify({
+            image_data: imageData,
+            current_frame: current_frame
+        }),
     }).then(response => {
         if (response.ok) {
             console.log('Image saved successfully.');

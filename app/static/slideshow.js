@@ -64,7 +64,6 @@ function set_seekbar_value(n) {
 
 input.addEventListener("change", (event) => {
     current_frame = parseInt(event.target.value);
-    console.log(event.target.value);
     update_num_frame_diplay();
     set_slideshow_to_current_frame();
 });

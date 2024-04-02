@@ -1,6 +1,7 @@
 import os
 
 import cv2
+from PIL import Image
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 
@@ -63,3 +64,15 @@ def get_video_info(video_path):
     fps = video.get(cv2.CAP_PROP_FPS)
     video.release()
     return num_frames, fps
+
+
+def resize_image_to_frame(image, frame_path):
+    """
+    Takes in an image and makes it the same size as the video
+    :param image: Image to be resized
+    :param frame_path: Path to the frame image
+    """
+    frame = Image.open(frame_path)
+    width, height = frame.size
+    resized_image = image.resize((width, height))
+    return resized_image

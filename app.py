@@ -2,12 +2,14 @@ import base64
 import os
 from io import BytesIO
 
+import cv2
 import numpy as np
 from PIL import Image
 from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify
 from werkzeug.utils import secure_filename
 
-from util.interactive_util import save_frames, get_video_info
+from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
+from util.scribble_util import setup_manager
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -23,7 +25,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # TODO: Maybe clear upload folder eve
 app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
-
 
 
 def allowed_file(filename):
@@ -66,13 +67,23 @@ def save_image():
         # Decode the base64 string to bytes
         image_bytes = base64.b64decode(image_data)
 
+        # Get the frame the mask was drawn on
+        current_frame = int(data['current_frame'])
+        frame_path = os.path.join(app.config["UPLOAD_FOLDER"], 'frames', 'frame%s.png' % current_frame)
+
         image = Image.open(BytesIO(image_bytes)).convert('L')
+        image = resize_image_to_frame(image, frame_path)
+
         image_array = np.array(image)
-        p_srb = np.where(image_array > 0, 1, 0) # Save image as an array with 1 where the scribble is
+        p_srb = np.where(image_array > 0, 1, 0)  # Save image as an array with 1 where the scribble is
+
+        manager = setup_manager(frame_path)
+        np_mask = manager.run_s2m(p_srb)
+        # TODO: Display mask instead of just saving it
+        cv2.imwrite(os.path.join(app.config["UPLOAD_FOLDER"], 'mask.png'), np_mask)
         return jsonify({'message': 'Image saved successfully.'}), 200
     else:
         return jsonify({'error': 'No image data found.'}), 400
-
 
 @app.route('/uploads/<filename>')
 def get_file(filename):
@@ -82,6 +93,7 @@ def get_file(filename):
 @app.route('/frame/<num>')
 def get_frame(num):
     return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), 'frame%s.png' % num)
+
 
 if __name__ == '__main__':
     app.run()
