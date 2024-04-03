@@ -1,0 +1,3 @@
+[submodule "submodules/Scribble_to_Mask"]
+	path = submodules/Scribble_to_Mask
+	url = git@github.com:Lim-Kevin/Scribble_to_Mask.git
