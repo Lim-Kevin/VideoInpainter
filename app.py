@@ -5,11 +5,11 @@ from io import BytesIO
 import cv2
 import numpy as np
 from PIL import Image
-from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify
+from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file
 from werkzeug.utils import secure_filename
 
 from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
-from util.scribble_util import setup_manager
+from util.scribble_util import setup_manager, comp_image
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -81,9 +81,17 @@ def save_image():
         np_mask = manager.run_s2m(p_srb)
         # TODO: Display mask instead of just saving it
         cv2.imwrite(os.path.join(app.config["UPLOAD_FOLDER"], 'mask.png'), np_mask)
-        return jsonify({'message': 'Image saved successfully.'}), 200
+
+        output = BytesIO()
+        # temp = Image.fromarray(np_mask)
+        temp = Image.fromarray(comp_image(np_mask))
+        temp.save(output, format='PNG')
+        output.seek(0)
+
+        return send_file(output, mimetype='image/png')
     else:
         return jsonify({'error': 'No image data found.'}), 400
+
 
 @app.route('/uploads/<filename>')
 def get_file(filename):
