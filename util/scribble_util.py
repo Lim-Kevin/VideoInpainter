@@ -1,12 +1,12 @@
 import cv2
 import numpy as np
 import torch
-from submodules.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as S2M
 
+from submodules.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as S2M
 from submodules.Scribble_to_Mask.interactive import InteractiveManager
 
 
-class myManager(InteractiveManager):
+class MyManager(InteractiveManager):
     def run_s2m(self, p_srb, n_srb=None):
         """
         Generates a mask out of scribbles
@@ -15,7 +15,12 @@ class myManager(InteractiveManager):
         :return: A mask as an array
         """
         self.p_srb = p_srb
-        return super().run_s2m()
+        np_mask = super().run_s2m()
+
+        threshhold = 0.5
+        np_mask = np.where(np_mask < 255 * threshhold, 0, 255)
+        return np_mask
+
 
 def setup_manager(image_path, mask=None):
     """
@@ -36,7 +41,7 @@ def setup_manager(image_path, mask=None):
     else:
         mask = cv2.imread(mask, cv2.IMREAD_GRAYSCALE)
 
-    return myManager(net, image, mask)
+    return MyManager(net, image, mask)
 
 
 def comp_image(mask_array, p_srb=None, n_srb=None):

@@ -83,7 +83,6 @@ def save_image():
         cv2.imwrite(os.path.join(app.config["UPLOAD_FOLDER"], 'mask.png'), np_mask)
 
         output = BytesIO()
-        # temp = Image.fromarray(np_mask)
         temp = Image.fromarray(comp_image(np_mask))
         temp.save(output, format='PNG')
         output.seek(0)
