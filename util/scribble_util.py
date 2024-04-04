@@ -1,9 +1,8 @@
 import cv2
 import numpy as np
 import torch
-
-from submodules.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as S2M
-from submodules.Scribble_to_Mask.interactive import InteractiveManager
+from lib.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as S2M
+from lib.Scribble_to_Mask.interactive import InteractiveManager
 
 
 class MyManager(InteractiveManager):
@@ -30,7 +29,7 @@ def setup_manager(image_path, mask=None):
     """
     # network stuff
     net = S2M()
-    net.load_state_dict(torch.load('submodules/Scribble_to_Mask/saves/s2m.pth'))
+    net.load_state_dict(torch.load('lib/Scribble_to_Mask/saves/s2m.pth'))
     net = net.cuda().eval()
     torch.set_grad_enabled(False)
     # Reading stuff
