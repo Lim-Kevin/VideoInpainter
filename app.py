@@ -48,7 +48,7 @@ def upload_file():
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
-
+            # Saving every frame
             save_frames(file_path, os.path.join(app.config['UPLOAD_FOLDER'], 'frames'))
             num_frames, fps = get_video_info(file_path)
             return render_template('mask.html', num_frames=num_frames, fps=fps)
@@ -67,20 +67,23 @@ def save_image():
         # Decode the base64 string to bytes
         image_bytes = base64.b64decode(image_data)
 
-        # Get the frame the mask was drawn on
-        current_frame = int(data['current_frame'])
-        frame_path = os.path.join(app.config["UPLOAD_FOLDER"], 'frames', 'frame%s.png' % current_frame)
-
+        # Resize mask to match the frame
+        frame_path = os.path.join(app.config["UPLOAD_FOLDER"], 'frames')
         image = Image.open(BytesIO(image_bytes)).convert('L')
         image = resize_image_to_frame(image, frame_path)
 
         image_array = np.array(image)
         p_srb = np.where(image_array > 0, 1, 0)  # Save image as an array with 1 where the scribble is
 
-        manager = setup_manager(frame_path)
+        # Get the frame the mask was drawn on
+        current_frame = int(data['current_frame'])
+
+        manager = setup_manager(os.path.join(frame_path, '{:05}.png'.format(current_frame)))
         np_mask = manager.run_s2m(p_srb)
         # TODO: Display mask instead of just saving it
-        cv2.imwrite(os.path.join(app.config["UPLOAD_FOLDER"], 'mask.png'), np_mask)
+        output_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
+        os.makedirs(output_folder, exist_ok=True)
+        cv2.imwrite(os.path.join(output_folder, '{:05}.png'.format(current_frame)), np_mask)
 
         output = BytesIO()
         temp = Image.fromarray(comp_image(np_mask))
@@ -99,7 +102,7 @@ def get_file(filename):
 
 @app.route('/frame/<num>')
 def get_frame(num):
-    return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), 'frame%s.png' % num)
+    return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), '{:05}.png'.format(int(num)))
 
 
 if __name__ == '__main__':

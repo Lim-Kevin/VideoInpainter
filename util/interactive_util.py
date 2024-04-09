@@ -42,7 +42,7 @@ def save_frames(video_path, output_folder):
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
-            frame_path = os.path.join(output_folder, 'frame%d.png' % frame_count)
+            frame_path = os.path.join(output_folder, '{:05}.png'.format(frame_count))
             cv2.imwrite(frame_path, frame)
             frame_count += 1
         else:
@@ -70,9 +70,10 @@ def resize_image_to_frame(image, frame_path):
     """
     Takes in an image and makes it the same size as the video
     :param image: Image to be resized
-    :param frame_path: Path to the frame image
+    :param frame_path: Path to the frames folder
     """
-    frame = Image.open(frame_path)
+
+    frame = Image.open(os.path.join(frame_path, os.listdir(frame_path)[0]))
     width, height = frame.size
     resized_image = image.resize((width, height))
     return resized_image
