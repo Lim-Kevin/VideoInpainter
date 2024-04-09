@@ -13,18 +13,25 @@ from lib.Mask_Propagation.model.eval_network import PropagationNetwork
 from util.MyDataset import MyDataset
 
 
+# TODO: Add functionality of propagating masks multiple times
 def propagate_all(frames_path, masks_path):
     """
     Propagate every frame for a given mask
     :param frames_path: Path to folder with frames
     :param masks_path: Path to folder with masks
-    :param out_path: Folder where propagated masks will be saved
     """
-    # TODO: add edge conditions
-    dataset = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=False)
-    dataset_reverse = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=True)
-    propagate(dataset, masks_path)
-    # propagate(dataset_reverse, out_path)
+
+    frames_list = sorted(os.listdir(frames_path))
+    masks_list = sorted(os.listdir(masks_path))
+
+    # Can't propagate backwards, if the mask is on the first frame,
+    if frames_list[0] != masks_list[0]:
+        dataset_reverse = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=True)
+        propagate(dataset_reverse, masks_path)
+    # Can't propagate forward, if the masks is on the first frame,
+    elif frames_list[-1] != masks_list[0]:
+        dataset = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=False)
+        propagate(dataset, masks_path)
 
 
 def propagate(dataset, out_path):
