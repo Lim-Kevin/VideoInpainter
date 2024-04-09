@@ -29,7 +29,7 @@ def setup_manager(image_path, mask=None):
     """
     # network stuff
     net = S2M()
-    net.load_state_dict(torch.load('lib/Scribble_to_Mask/saves/s2m.pth'))
+    net.load_state_dict(torch.load('saves/s2m.pth'))
     net = net.cuda().eval()
     torch.set_grad_enabled(False)
     # Reading stuff

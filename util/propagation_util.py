@@ -28,7 +28,7 @@ def propagate_all(frames_path, masks_path):
 
 
 def propagate(dataset, out_path):
-    model = 'lib/Mask_Propagation/saves/propagation_model.pth'
+    model = 'saves/propagation_model.pth'
 
     # Simple setup
     os.makedirs(out_path, exist_ok=True)

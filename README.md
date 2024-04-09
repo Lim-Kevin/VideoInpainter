@@ -14,6 +14,11 @@ Install requirements:
 pip install -r requirements.txt
 ```
 
+Download the models:
+```bash
+python download_models.py
+```
+
 ## Installation
 
 1. Clone the project:

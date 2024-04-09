@@ -22,7 +22,7 @@ SECRET_KEY = os.urandom(12)  # Set the secret key to a string of random symbols
 app.secret_key = SECRET_KEY
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # TODO: Maybe clear upload folder everytime before uploading new file
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
 
