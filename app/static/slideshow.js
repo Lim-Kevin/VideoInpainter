@@ -1,5 +1,6 @@
 // Play/Pause button
 var is_paused = true;
+
 function play_or_pause() {
     is_paused = !is_paused;
 }
@@ -12,8 +13,26 @@ var num_frames = document.currentScript.getAttribute('num_frames'),
     img = document.getElementById('slideshow'),
     current_frame = 0;
 
-function set_slideshow_to_current_frame() {
+// Set slideshow to the current frame and overlay mask if it exists
+function update_slideshow() {
+    // Delete scribbles
+    clear_canvas()
+
+    // Set frame
     img.src = 'frame/' + current_frame;
+
+    // Set composed mask
+    fetch('/mask/' + current_frame).then(response => {
+        return response.blob()
+    }).then(blob => {
+        // Create a URL for the blob
+        let imageUrl = URL.createObjectURL(blob);
+
+        // Display processed image
+        mask_image.src = imageUrl;
+    }).catch(error => {
+        console.error('Error displaying composed mask:', error);
+    });
 }
 
 function play_slideshow() {
@@ -24,12 +43,13 @@ function play_slideshow() {
         }
         set_seekbar_value(current_frame);
         update_num_frame_diplay();
-        set_slideshow_to_current_frame()
+        update_slideshow()
     }
 }
+
 setInterval(function () {
     play_slideshow();
-}, 1/fps * 1000);
+}, 1 / fps * 1000);
 
 
 /*
@@ -65,5 +85,5 @@ function set_seekbar_value(n) {
 input.addEventListener("change", (event) => {
     current_frame = parseInt(event.target.value);
     update_num_frame_diplay();
-    set_slideshow_to_current_frame();
+    update_slideshow();
 });

@@ -79,6 +79,7 @@ function save() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
+    clear_canvas()
 }
 
 var propagate_button = document.getElementById('propagate_button');
@@ -88,3 +89,7 @@ propagate_button.addEventListener('click', function(e) {
     request.open("GET", "/propagate", true);
     request.send();
 })
+
+function clear_canvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+}

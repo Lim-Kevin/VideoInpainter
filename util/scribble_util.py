@@ -1,8 +1,12 @@
+from io import BytesIO
+
 import cv2
 import numpy as np
 import torch
-from lib.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as S2M
+from PIL import Image
+
 from lib.Scribble_to_Mask.interactive import InteractiveManager
+from lib.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as S2M
 
 
 class MyManager(InteractiveManager):
@@ -43,14 +47,19 @@ def setup_manager(image_path, mask=None):
     return MyManager(net, image, mask)
 
 
-def comp_image(mask_array, p_srb=None, n_srb=None):
+def comp_image(mask_path, p_srb=None, n_srb=None):
     """
     Puts the mask and the scribbles together into one image
-    :param mask_array:The mask as a 1-channel array, 255 where the mask is
+    :param mask_path: The path to the mask
     :param p_srb: The positive scribble, 1 where the scribble is
     :param n_srb: The negative scribble, 1 where the scribble is
-    :return: A composed 4-channel image as an array
+    :return: A composed 4-channel image as a BytesIO object
     """
+
+    image = Image.open(mask_path)
+    # 1-channel array, 255 where the mask is
+    mask_array = np.array(image)
+
     # Create an empty 4-channel image
     comp = np.zeros((mask_array.shape[0], mask_array.shape[1], 4), dtype=np.uint8)
 
@@ -61,4 +70,10 @@ def comp_image(mask_array, p_srb=None, n_srb=None):
     # Make the image be transparent where there is no color
     alpha = np.where(mask_array == 0, 0, 128)
     comp[:, :, 3] = alpha
-    return comp
+
+    output = BytesIO()
+    temp = Image.fromarray(comp)
+    temp.save(output, format='PNG')
+    output.seek(0)
+
+    return output

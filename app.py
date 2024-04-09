@@ -6,7 +6,7 @@ from io import BytesIO
 import cv2
 import numpy as np
 from PIL import Image
-from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file
+from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file, abort
 from werkzeug.utils import secure_filename
 
 from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
@@ -56,7 +56,7 @@ def upload_file():
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            clear_folder(app.config['UPLOAD_FOLDER'])
+            # clear_folder(app.config['UPLOAD_FOLDER'])
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
@@ -93,16 +93,17 @@ def save_mask():
         manager = setup_manager(os.path.join(frame_path, '{:05}.png'.format(current_frame)))
         np_mask = manager.run_s2m(p_srb)
         # TODO: Display mask instead of just saving it
-        output_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
-        os.makedirs(output_folder, exist_ok=True)
-        cv2.imwrite(os.path.join(output_folder, '{:05}.png'.format(current_frame)), np_mask)
+        masks_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
+        os.makedirs(masks_folder, exist_ok=True)
 
-        output = BytesIO()
-        temp = Image.fromarray(comp_image(np_mask))
-        temp.save(output, format='PNG')
-        output.seek(0)
+        mask_path = os.path.join(masks_folder, '{:05}.png'.format(current_frame))
+        # Save the mask
+        cv2.imwrite(mask_path, np_mask)
 
-        return send_file(output, mimetype='image/png')
+        # Compose mask to display
+        comp = comp_image(mask_path)
+
+        return send_file(comp, mimetype='image/png')
     else:
         return jsonify({'error': 'No image data found.'}), 400
 
@@ -117,10 +118,31 @@ def get_frame(num):
     return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), '{:05}.png'.format(int(num)))
 
 
+@app.route('/mask/<num>')
+def get_mask(num):
+    # Check if the image exists
+    image_path = os.path.join(app.config["UPLOAD_FOLDER"], 'masks', '{:05}.png'.format(int(num)))
+    try:
+        with open(image_path, 'rb') as f:
+            comp = comp_image(image_path)
+            return send_file(comp, mimetype='image/png')
+    except FileNotFoundError:
+        abort(404)
+
+
+is_propagating = False
+
+
 @app.route('/propagate')
 def propagate():
-    propagate_all(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
-                  os.path.join(app.config["UPLOAD_FOLDER"], 'masks'))
+    global is_propagating
+    if not is_propagating:
+        is_propagating = True
+        propagate_all(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
+                      os.path.join(app.config["UPLOAD_FOLDER"], 'masks'))
+        is_propagating = False
+    else:
+        return 'Already propagating masks', 400, {'Content-Type': 'text/plain'}
     return 'Propagating masks', 200, {'Content-Type': 'text/plain'}
 
 
