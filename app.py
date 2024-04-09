@@ -92,7 +92,7 @@ def save_mask():
 
         manager = setup_manager(os.path.join(frame_path, '{:05}.png'.format(current_frame)))
         np_mask = manager.run_s2m(p_srb)
-        # TODO: Display mask instead of just saving it
+
         masks_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
         os.makedirs(masks_folder, exist_ok=True)
 

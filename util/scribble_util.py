@@ -63,7 +63,6 @@ def comp_image(mask_path, p_srb=None, n_srb=None):
     # Create an empty 4-channel image
     comp = np.zeros((mask_array.shape[0], mask_array.shape[1], 4), dtype=np.uint8)
 
-    # TODO: add scribbles to the image
     # Red wherever the mask is
     comp[:, :, 0] = mask_array
 
