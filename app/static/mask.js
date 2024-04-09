@@ -56,7 +56,7 @@ window.onload = function () {
 // Saves the drawn mask
 function save() {
     const imageData = canvas.toDataURL('image/png');
-    fetch('/save_image', {
+    fetch('/save_mask', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -81,3 +81,10 @@ function save() {
     });
 }
 
+var propagate_button = document.getElementById('propagate_button');
+propagate_button.addEventListener('click', function(e) {
+    e.preventDefault()
+    let request = new XMLHttpRequest();
+    request.open("GET", "/propagate", true);
+    request.send();
+})

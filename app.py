@@ -9,6 +9,7 @@ from flask import Flask, flash, request, redirect, send_from_directory, render_t
 from werkzeug.utils import secure_filename
 
 from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
+from util.propagation_util import propagate_all
 from util.scribble_util import setup_manager, comp_image
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
@@ -34,6 +35,7 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
+    global num_frames, fps
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -57,8 +59,8 @@ def upload_file():
     return render_template('index.html')
 
 
-@app.route('/save_image', methods=['POST'])
-def save_image():
+@app.route('/save_mask', methods=['POST'])
+def save_mask():
     data = request.get_json()
     if 'image_data' in data:
         image_data = data['image_data']
@@ -103,6 +105,13 @@ def get_file(filename):
 @app.route('/frame/<num>')
 def get_frame(num):
     return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), '{:05}.png'.format(int(num)))
+
+
+@app.route('/propagate')
+def propagate():
+    propagate_all(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
+                  os.path.join(app.config["UPLOAD_FOLDER"], 'masks'))
+    return 'Propagating masks', 200, {'Content-Type': 'text/plain'}
 
 
 if __name__ == '__main__':
