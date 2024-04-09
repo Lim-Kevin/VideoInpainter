@@ -1,5 +1,6 @@
 import base64
 import os
+import shutil
 from io import BytesIO
 
 import cv2
@@ -33,9 +34,17 @@ def allowed_file(filename):
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def clear_folder(folder_path):
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
-    global num_frames, fps
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -47,6 +56,7 @@ def upload_file():
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
+            clear_folder(app.config['UPLOAD_FOLDER'])
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
