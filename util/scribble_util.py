@@ -47,12 +47,10 @@ def setup_manager(image_path, mask=None):
     return MyManager(net, image, mask)
 
 
-def comp_image(mask_path, p_srb=None, n_srb=None):
+def comp_image(mask_path):
     """
     Puts the mask and the scribbles together into one image
     :param mask_path: The path to the mask
-    :param p_srb: The positive scribble, 1 where the scribble is
-    :param n_srb: The negative scribble, 1 where the scribble is
     :return: A composed 4-channel image as a BytesIO object
     """
 

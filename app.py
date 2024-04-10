@@ -6,7 +6,8 @@ from io import BytesIO
 import cv2
 import numpy as np
 from PIL import Image
-from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file, abort
+from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file, abort, \
+    url_for, session
 from werkzeug.utils import secure_filename
 
 from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
@@ -56,17 +57,24 @@ def upload_file():
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            # clear_folder(app.config['UPLOAD_FOLDER'])
+            clear_folder(app.config['UPLOAD_FOLDER'])
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
             # Saving every frame
             save_frames(file_path, os.path.join(app.config['UPLOAD_FOLDER'], 'frames'))
-            num_frames, fps = get_video_info(file_path)
-            return render_template('mask.html', num_frames=num_frames, fps=fps)
+
+            return redirect(url_for('mask_page', video_name=filename))
         else:
             flash('File extension not allowed')
     return render_template('index.html')
+
+
+@app.route('/inpaint/<video_name>')
+def mask_page(video_name):
+    video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_name)
+    num_frames, fps = get_video_info(video_path)
+    return render_template('mask.html', num_frames=num_frames, fps=fps)
 
 
 @app.route('/save_mask', methods=['POST'])
@@ -85,18 +93,20 @@ def save_mask():
         image = resize_image_to_frame(image, frame_path)
 
         image_array = np.array(image)
-        p_srb = np.where(image_array > 0, 1, 0)  # Save image as an array with 1 where the scribble is
+        # Save image as an array with 1 where the scribble is
+        p_srb = np.where(image_array > 0, 1, 0)
 
         # Get the frame the mask was drawn on
         current_frame = int(data['current_frame'])
 
+        # Scribble to mask
         manager = setup_manager(os.path.join(frame_path, '{:05}.png'.format(current_frame)))
         np_mask = manager.run_s2m(p_srb)
 
         masks_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
         os.makedirs(masks_folder, exist_ok=True)
-
         mask_path = os.path.join(masks_folder, '{:05}.png'.format(current_frame))
+
         # Save the mask
         cv2.imwrite(mask_path, np_mask)
 
@@ -121,13 +131,19 @@ def get_frame(num):
 @app.route('/mask/<num>')
 def get_mask(num):
     # Check if the image exists
-    image_path = os.path.join(app.config["UPLOAD_FOLDER"], 'masks', '{:05}.png'.format(int(num)))
-    try:
-        with open(image_path, 'rb') as f:
-            comp = comp_image(image_path)
-            return send_file(comp, mimetype='image/png')
-    except FileNotFoundError:
-        abort(404)
+    mask_path = os.path.join(app.config["UPLOAD_FOLDER"], 'masks', '{:05}.png'.format(int(num)))
+    propagated_mask_path = os.path.join(app.config["UPLOAD_FOLDER"], 'propagated_masks', '{:05}.png'.format(int(num)))
+
+    if os.path.exists(mask_path):
+        image_path = mask_path
+    elif os.path.exists(propagated_mask_path):
+        image_path = propagated_mask_path
+    else:
+        print('not found')
+        return jsonify({'error': 'No image data found.'}), 204
+
+    comp = comp_image(image_path)
+    return send_file(comp, mimetype='image/png')
 
 
 is_propagating = False
@@ -139,7 +155,8 @@ def propagate():
     if not is_propagating:
         is_propagating = True
         propagate_all(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
-                      os.path.join(app.config["UPLOAD_FOLDER"], 'masks'))
+                      os.path.join(app.config["UPLOAD_FOLDER"], 'masks'),
+                      os.path.join(app.config["UPLOAD_FOLDER"], 'propagated_masks'))
         is_propagating = False
     else:
         return 'Already propagating masks', 400, {'Content-Type': 'text/plain'}

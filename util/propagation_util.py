@@ -14,7 +14,7 @@ from util.MyDataset import MyDataset
 
 
 # TODO: Add functionality of propagating masks multiple times
-def propagate_all(frames_path, masks_path):
+def propagate_all(frames_path, masks_path, out_path):
     """
     Propagate every frame for a given mask
     :param frames_path: Path to folder with frames
@@ -27,14 +27,20 @@ def propagate_all(frames_path, masks_path):
     # Can't propagate backwards, if the mask is on the first frame,
     if frames_list[0] != masks_list[0]:
         dataset_reverse = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=True)
-        propagate(dataset_reverse, masks_path)
+        propagate(dataset_reverse, out_path)
     # Can't propagate forward, if the masks is on the first frame,
     elif frames_list[-1] != masks_list[0]:
         dataset = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=False)
-        propagate(dataset, masks_path)
+        propagate(dataset, out_path)
 
 
 def propagate(dataset, out_path):
+    """
+    Propagate every frame after a given mask
+    :param dataset:
+    :param out_path:
+    :return:
+    """
     model = 'saves/propagation_model.pth'
 
     # Simple setup
@@ -50,15 +56,11 @@ def propagate(dataset, out_path):
     prop_model = PropagationNetwork(top_k=top_k, km=5.6).cuda().eval()
     prop_model.load_state_dict(prop_saved)
 
-    total_process_time = 0
-    total_frames = 0
-
     # Start eval
     for data in progressbar(test_loader, max_value=len(test_loader), redirect_stdout=True):
         rgb = data['rgb']
         msk = data['gt'][0]
         info = data['info']
-        # name = info['name'][0]
         k = len(info['labels'][0])
         gt_obj = info['gt_obj']
         size = info['size']
@@ -113,7 +115,6 @@ def propagate(dataset, out_path):
             idx_masks[out_masks == i] = backward_idx
 
         torch.cuda.synchronize()
-        total_frames += (idx_masks.shape[0] - min_idx)
 
         # Save the results
         this_out_path = path.join(out_path)

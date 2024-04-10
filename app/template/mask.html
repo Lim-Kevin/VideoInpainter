@@ -8,7 +8,7 @@
     <h1>Draw</h1>
     <div class="video_player">
       <div class="canvas_container">
-        <img class="overlay" id="mask" />
+        <img class="overlay" id="mask" alt=""/>
         <canvas class="overlay" id="cv1"></canvas>
         <img id="slideshow" src="{{url_for('get_frame', num=0)}}" />
       </div>
@@ -25,7 +25,6 @@
       <datalist id="markers"></datalist>
     </div>
     <p id="frames_display">Frame: 1/{{num_frames}}</p>
-    <img id="temp" />
 
     <script defer src="{{url_for('static', filename='mask.js')}}"></script>
     <script src="{{url_for('static', filename='slideshow.js')}}", fps="{{fps}}", num_frames="{{num_frames}}"></script>

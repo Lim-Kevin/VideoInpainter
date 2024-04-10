@@ -19,17 +19,23 @@ function update_slideshow() {
     clear_canvas()
 
     // Set frame
-    img.src = 'frame/' + current_frame;
+    img.src = '/frame/' + current_frame;
 
     // Set composed mask
     fetch('/mask/' + current_frame).then(response => {
-        return response.blob()
+        if (response.status === 204) {
+            mask_image.style.display = 'none'
+        } else {
+            return response.blob()
+        }
     }).then(blob => {
-        // Create a URL for the blob
-        let imageUrl = URL.createObjectURL(blob);
-
-        // Display processed image
-        mask_image.src = imageUrl;
+        if (blob) {
+            mask_image.style.display = 'block'
+            // Create a URL for the blob
+            let imageUrl = URL.createObjectURL(blob);
+            // Display processed image
+            mask_image.src = imageUrl;
+        }
     }).catch(error => {
         console.error('Error displaying composed mask:', error);
     });
