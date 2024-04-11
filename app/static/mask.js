@@ -16,6 +16,9 @@ canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
 function startDrawing(e) {
+    if (e.type === 'mousedown')  {
+        mask_image.style.display = 'none'
+    }
     isDrawing = true;
     [lastX, lastY] = [e.offsetX, e.offsetY];
 }
@@ -76,6 +79,7 @@ function save() {
 
         // Display processed image
         mask_image.src = imageUrl;
+        mask_image.style.display = 'block'
     }).catch(error => {
         console.error('Error saving image:', error);
     });

@@ -139,7 +139,6 @@ def get_mask(num):
     elif os.path.exists(propagated_mask_path):
         image_path = propagated_mask_path
     else:
-        print('not found')
         return jsonify({'error': 'No image data found.'}), 204
 
     comp = comp_image(image_path)
