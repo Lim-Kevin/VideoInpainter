@@ -4,3 +4,6 @@
 [submodule "lib/Mask_Propagation"]
 	path = lib/Mask_Propagation
 	url = https://github.com/Lim-Kevin/Mask_Propagation_fork.git
+[submodule "lib/ProPainter"]
+	path = lib/ProPainter
+	url = https://github.com/Lim-Kevin/ProPainter_fork.git
