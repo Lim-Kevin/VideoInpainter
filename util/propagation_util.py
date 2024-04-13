@@ -14,7 +14,7 @@ from util.MyDataset import MyDataset
 
 
 # TODO: Add functionality of propagating masks multiple times
-# TODO: Fix propagation for multiple objects
+# TODO: Fix masks disappearing for a frame when adding another mask later on
 def propagate_all(frames_path, masks_path, out_path):
     """
     Propagate every frame for a given mask

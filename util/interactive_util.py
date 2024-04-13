@@ -70,10 +70,10 @@ def resize_image_to_frame(image, frame_path):
     """
     Takes in an image and makes it the same size as the video
     :param image: Image to be resized
-    :param frame_path: Path to the frames folder
+    :param frame_path: Path to the frame to be resized to
     """
 
-    frame = Image.open(os.path.join(frame_path, os.listdir(frame_path)[0]))
+    frame = Image.open(frame_path)
     width, height = frame.size
     resized_image = image.resize((width, height))
     return resized_image

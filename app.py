@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 
 from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
 from util.propagation_util import propagate_all
-from util.scribble_util import setup_manager, comp_image
+from util.scribble_util import comp_image, MyManager
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -29,6 +29,7 @@ app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=Tru
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 
+s2m_manager = MyManager()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -87,25 +88,25 @@ def save_mask():
         # Decode the base64 string to bytes
         image_bytes = base64.b64decode(image_data)
 
-        # Resize mask to match the frame
-        frame_path = os.path.join(app.config["UPLOAD_FOLDER"], 'frames')
-        image = Image.open(BytesIO(image_bytes)).convert('L')
-        image = resize_image_to_frame(image, frame_path)
-
-        image_array = np.array(image)
-        # Save image as an array with 1 where the scribble is
-        p_srb = np.where(image_array > 0, 1, 0)
-
         # Get the frame the mask was drawn on
         current_frame = int(data['current_frame'])
 
-        # Scribble to mask
-        manager = setup_manager(os.path.join(frame_path, '{:05}.png'.format(current_frame)))
-        np_mask = manager.run_s2m(p_srb)
+        # Resize mask to match the frame
+        frame_path = os.path.join(app.config["UPLOAD_FOLDER"], 'frames', '{:05}.png'.format(current_frame))
+        image = Image.open(BytesIO(image_bytes)).convert('L')
+        image = resize_image_to_frame(image, frame_path)
+        image_array = np.array(image)
+
+        # Save image as an array with 1 where the scribble is
+        p_srb = np.where(image_array > 0, 1, 0)
 
         masks_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
         os.makedirs(masks_folder, exist_ok=True)
         mask_path = os.path.join(masks_folder, '{:05}.png'.format(current_frame))
+
+        # Scribble to mask
+        s2m_manager.setup_manager(frame_path, mask_path)
+        np_mask = s2m_manager.run_s2m(p_srb)
 
         # Save the mask
         cv2.imwrite(mask_path, np_mask)
