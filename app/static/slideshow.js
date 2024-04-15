@@ -63,7 +63,7 @@ setInterval(function () {
  */
 
 // Add options to datalist, which adds tick marks below the input slider
-var input = document.getElementById("seekbar"),
+var input = document.getElementById("slider"),
     datalist = document.getElementById("markers"),
     num_options = num_frames;
 // Hide markers if there are too many steps

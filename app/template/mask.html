@@ -13,6 +13,10 @@
         <img id="slideshow" src="{{url_for('get_frame', num=0)}}" />
       </div>
       <!-- TODO: update button names -->
+      <div class="seekbar">
+        <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
+        <datalist id="markers"></datalist>
+      </div>
       <div class="controls">
         <button id="play_button" onclick="play_or_pause()" type="button">Play/Pause</button>
         <button id="reset_button" onclick="clear_canvas()">Reset scribble</button>
@@ -21,8 +25,6 @@
         <button id="save_button" onclick="save()" type="button">Save Mask</button>
         <button id="inpaint_button">Inpaint</button>
       </div>
-      <input type="range" id="seekbar" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
-      <datalist id="markers"></datalist>
     </div>
     <p id="frames_display">Frame: 1/{{num_frames}}</p>
 
