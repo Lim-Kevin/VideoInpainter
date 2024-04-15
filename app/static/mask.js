@@ -16,9 +16,6 @@ canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
 function startDrawing(e) {
-    if (e.type === 'mousedown')  {
-        mask_image.style.display = 'none'
-    }
     isDrawing = true;
     [lastX, lastY] = [e.offsetX, e.offsetY];
 }
@@ -86,7 +83,8 @@ function save() {
     clear_canvas()
 }
 
-var propagate_button = document.getElementById('propagate_button');
+var propagate_button = document.getElementById('propagate_button'),
+    inpaint_button = document.getElementById('inpaint_button');
 propagate_button.addEventListener('click', function(e) {
     e.preventDefault()
     let request = new XMLHttpRequest();
@@ -94,6 +92,14 @@ propagate_button.addEventListener('click', function(e) {
     request.send();
 })
 
+inpaint_button.addEventListener('click', function(e) {
+    e.preventDefault()
+    let request = new XMLHttpRequest();
+    request.open("GET", "/inpaint/" + fps, true);
+    request.send();
+})
+
+// TODO: Make a function delete the mask on that frame, set it to reset button
 function clear_canvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 }

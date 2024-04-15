@@ -20,6 +20,7 @@ def propagate_all(frames_path, masks_path, out_path):
     Propagate every frame for a given mask
     :param frames_path: Path to folder with frames
     :param masks_path: Path to folder with masks
+    :param out_path: Output path
     """
 
     frames_list = sorted(os.listdir(frames_path))

@@ -10,6 +10,7 @@ from flask import Flask, flash, request, redirect, send_from_directory, render_t
     url_for, session
 from werkzeug.utils import secure_filename
 
+from lib.ProPainter.inference_propainter import inpaint
 from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
 from util.propagation_util import propagate_all
 from util.scribble_util import comp_image, MyManager
@@ -30,6 +31,7 @@ app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=Tru
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 
 s2m_manager = MyManager()
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -71,7 +73,7 @@ def upload_file():
     return render_template('index.html')
 
 
-@app.route('/inpaint/<video_name>')
+@app.route('/interactive/<video_name>')
 def mask_page(video_name):
     video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_name)
     num_frames, fps = get_video_info(video_path)
@@ -152,6 +154,9 @@ is_propagating = False
 @app.route('/propagate')
 def propagate():
     global is_propagating
+    mask_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
+    if len(os.listdir(mask_folder)) == 0:
+        return 'No masks to propagate', 400, {'Content-Type': 'text/plain'}
     if not is_propagating:
         is_propagating = True
         propagate_all(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
@@ -161,6 +166,19 @@ def propagate():
     else:
         return 'Already propagating masks', 400, {'Content-Type': 'text/plain'}
     return 'Propagating masks', 200, {'Content-Type': 'text/plain'}
+
+
+@app.route('/inpaint/<fps>')
+def inpaint_video(fps):
+    inpaint(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
+            os.path.join(app.config["UPLOAD_FOLDER"], 'propagated_masks'),
+            app.config["UPLOAD_FOLDER"], fps)
+
+    # Delete old masks
+    clear_folder(os.path.join(app.config['UPLOAD_FOLDER'], 'masks'))
+    clear_folder(os.path.join(app.config['UPLOAD_FOLDER'], 'propagated_masks'))
+
+    return 'Inpainting', 200, {'Content-Type': 'text/plain'}
 
 
 if __name__ == '__main__':
