@@ -97,7 +97,7 @@ function inpaint() {
             window.location.href = response.url;
         }
     }).catch(error => {
-        console.error('Error saving image:', error);
+        console.error('Error inpainting:', error);
     });
 }
 

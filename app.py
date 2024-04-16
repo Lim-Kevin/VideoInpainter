@@ -131,6 +131,12 @@ def save_mask():
         return jsonify({'error': 'No image data found.'}), 400
 
 
+@app.route('/again', methods=['POST'])
+def again():
+    session['video_inpainted'] = False
+    return redirect(url_for('mask_page'))
+
+
 @app.route('/uploads/<filename>')
 def get_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
