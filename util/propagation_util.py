@@ -13,7 +13,7 @@ from lib.Mask_Propagation.model.eval_network import PropagationNetwork
 from util.MyDataset import MyDataset
 
 
-# TODO: Fix bug, where you can't propagate, when every
+# TODO: Fix bug, where you can't propagate, when every frame already has a mask
 # TODO: Fix masks disappearing for a frame when adding another mask later on
 def propagate_all(frames_path, masks_path, out_path):
     """

@@ -37,7 +37,7 @@ function draw(e) {
 }
 
 function stopDrawing(e) {
-    if (e.type == 'mouseup') {
+    if (e.type === 'mouseup') {
         save();
     }
     isDrawing = false;
