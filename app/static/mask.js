@@ -83,14 +83,11 @@ function save() {
     clear_canvas()
 }
 
-var propagate_button = document.getElementById('propagate_button'),
-    inpaint_button = document.getElementById('inpaint_button');
-propagate_button.addEventListener('click', function(e) {
-    e.preventDefault()
+function propagate() {
     let request = new XMLHttpRequest();
     request.open("POST", "/propagate", true);
     request.send();
-})
+}
 
 function inpaint() {
     fetch('inpaint', {
