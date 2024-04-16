@@ -1,0 +1,59 @@
+#video_player {
+    display: flex;
+    width: 800px;
+    height: fit-content;
+    padding: 20px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+#canvas_container {
+    position: relative;
+    display: inline-block;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#cv1 {
+    z-index: 20;
+}
+
+#mask {
+    z-index: 10;
+}
+
+#controls {
+    display: flex;
+}
+
+button {
+    flex: 1;
+    padding: 5px 0;
+    margin: 0 10px;
+}
+
+#play_button {
+    flex: 2;
+}
+
+#slideshow {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+#seekbar {
+    margin: 10px 0;
+}
+
+#slider {
+    width: 100%;
+    margin: 0;
+}

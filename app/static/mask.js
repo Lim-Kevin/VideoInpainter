@@ -88,16 +88,21 @@ var propagate_button = document.getElementById('propagate_button'),
 propagate_button.addEventListener('click', function(e) {
     e.preventDefault()
     let request = new XMLHttpRequest();
-    request.open("GET", "/propagate", true);
+    request.open("POST", "/propagate", true);
     request.send();
 })
 
-inpaint_button.addEventListener('click', function(e) {
-    e.preventDefault()
-    let request = new XMLHttpRequest();
-    request.open("GET", "/inpaint/" + fps, true);
-    request.send();
-})
+function inpaint() {
+    fetch('inpaint', {
+        method: 'POST'
+    }).then((response)=>{
+        if(response.redirected){
+            window.location.href = response.url;
+        }
+    }).catch(error => {
+        console.error('Error saving image:', error);
+    });
+}
 
 // TODO: Make a function delete the mask on that frame, set it to reset button
 function clear_canvas() {

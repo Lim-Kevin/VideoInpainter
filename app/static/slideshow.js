@@ -15,9 +15,6 @@ var num_frames = document.currentScript.getAttribute('num_frames'),
 
 // Set slideshow to the current frame and overlay mask if it exists
 function update_slideshow() {
-    // Delete scribbles
-    clear_canvas()
-
     // Set frame
     img.src = '/frame/' + current_frame;
 

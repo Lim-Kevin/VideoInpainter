@@ -6,8 +6,8 @@ from io import BytesIO
 import cv2
 import numpy as np
 from PIL import Image
-from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file, abort, \
-    url_for, session
+from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file, url_for, \
+    session
 from werkzeug.utils import secure_filename
 
 from lib.ProPainter.inference_propainter import inpaint
@@ -33,6 +33,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 s2m_manager = MyManager()
 
 
+# TODO: Use flashes
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -60,24 +61,33 @@ def upload_file():
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
+            session['video_uploaded'] = True
             clear_folder(app.config['UPLOAD_FOLDER'])
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            session['name'] = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], session.get('name'))
             file.save(file_path)
             # Saving every frame
             save_frames(file_path, os.path.join(app.config['UPLOAD_FOLDER'], 'frames'))
 
-            return redirect(url_for('mask_page', video_name=filename))
+            session['num_frames'], session['fps'] = get_video_info(file_path)
+            return redirect(url_for('mask_page'))
         else:
             flash('File extension not allowed')
     return render_template('index.html')
 
 
-@app.route('/interactive/<video_name>')
-def mask_page(video_name):
-    video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_name)
-    num_frames, fps = get_video_info(video_path)
-    return render_template('mask.html', num_frames=num_frames, fps=fps)
+@app.route('/interactive')
+def mask_page():
+    if session.get('video_uploaded') and not session.get('video_inpainted'):
+        return render_template('mask.html', num_frames=session.get('num_frames'), fps=session.get('fps'))
+    return redirect(url_for('upload_file'))
+
+
+@app.route('/result')
+def result_page():
+    if session.get('video_uploaded') and session.get('video_inpainted'):
+        return render_template('result.html', num_frames=session.get('num_frames'), fps=session.get('fps'))
+    return redirect(url_for('upload_file'))
 
 
 @app.route('/save_mask', methods=['POST'])
@@ -151,7 +161,7 @@ def get_mask(num):
 is_propagating = False
 
 
-@app.route('/propagate')
+@app.route('/propagate', methods=['POST'])
 def propagate():
     global is_propagating
     mask_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
@@ -168,17 +178,18 @@ def propagate():
     return 'Propagating masks', 200, {'Content-Type': 'text/plain'}
 
 
-@app.route('/inpaint/<fps>')
-def inpaint_video(fps):
+@app.route('/inpaint', methods=['POST'])
+def inpaint_video():
     inpaint(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
             os.path.join(app.config["UPLOAD_FOLDER"], 'propagated_masks'),
-            app.config["UPLOAD_FOLDER"], fps)
+            app.config["UPLOAD_FOLDER"], session.get('fps'))
 
     # Delete old masks
     clear_folder(os.path.join(app.config['UPLOAD_FOLDER'], 'masks'))
     clear_folder(os.path.join(app.config['UPLOAD_FOLDER'], 'propagated_masks'))
 
-    return 'Inpainting', 200, {'Content-Type': 'text/plain'}
+    session['video_inpainted'] = True
+    return redirect(url_for('result_page'))
 
 
 if __name__ == '__main__':
