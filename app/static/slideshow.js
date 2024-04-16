@@ -18,6 +18,13 @@ function update_slideshow() {
     // Set frame
     img.src = '/frame/' + current_frame;
 
+    try {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+    } catch (e) {
+        // No canvas
+    }
+
     // Set composed mask
     fetch('/mask/' + current_frame).then(response => {
         if (response.status === 204) {
@@ -34,7 +41,7 @@ function update_slideshow() {
             mask_image.src = imageUrl;
         }
     }).catch(error => {
-        console.error('Error displaying composed mask:', error);
+        // No mask overlay
     });
 }
 

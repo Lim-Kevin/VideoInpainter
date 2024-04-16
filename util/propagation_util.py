@@ -13,9 +13,8 @@ from lib.Mask_Propagation.model.eval_network import PropagationNetwork
 from util.MyDataset import MyDataset
 
 
-# TODO: Add functionality of propagating masks multiple times
+# TODO: Fix bug, where you can't propagate, when every
 # TODO: Fix masks disappearing for a frame when adding another mask later on
-# TODO: Fill propagated mask folder with empty mask if not full
 def propagate_all(frames_path, masks_path, out_path):
     """
     Propagate every frame for a given mask
@@ -24,17 +23,12 @@ def propagate_all(frames_path, masks_path, out_path):
     :param out_path: Output path
     """
 
-    frames_list = sorted(os.listdir(frames_path))
-    masks_list = sorted(os.listdir(masks_path))
-
-    # Can't propagate backwards, if a mask is on the first frame,
-    if frames_list[0] != masks_list[0]:
-        dataset_reverse = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=True)
-        propagate(dataset_reverse, out_path)
-    # Can't propagate forward, if a masks is on the last frame,
-    elif frames_list[-1] != masks_list[-1]:
-        dataset = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=False)
-        propagate(dataset, out_path)
+    # Propagating forward
+    dataset_reverse = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=True)
+    propagate(dataset_reverse, out_path)
+    # Propagating backwards
+    dataset = MyDataset(mask_dir=masks_path, image_dir=frames_path, reverse=False)
+    propagate(dataset, out_path)
 
 
 def propagate(dataset, out_path):

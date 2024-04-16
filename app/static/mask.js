@@ -5,9 +5,9 @@ var canvas = document.getElementById("cv1"),
     ctx = canvas.getContext("2d"),
     mask_image = document.getElementById("mask");
 
-var isDrawing = false;
-var lastX = 0;
-var lastY = 0;
+var isDrawing = false,
+    lastX = 0,
+    lastY = 0;
 
 // Event listeners to track mouse movements
 canvas.addEventListener('mousedown', startDrawing);
@@ -36,7 +36,10 @@ function draw(e) {
     [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
-function stopDrawing() {
+function stopDrawing(e) {
+    if (e.type == 'mouseup') {
+        save();
+    }
     isDrawing = false;
 }
 
@@ -80,7 +83,7 @@ function save() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
-    clear_canvas()
+    // clear_canvas()
 }
 
 function propagate() {
@@ -102,6 +105,4 @@ function inpaint() {
 }
 
 // TODO: Make a function delete the mask on that frame, set it to reset button
-function clear_canvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-}
+
