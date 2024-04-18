@@ -7,3 +7,7 @@
 [submodule "lib/ProPainter"]
 	path = lib/ProPainter
 	url = https://github.com/Lim-Kevin/ProPainter_fork.git
+[submodule "lib/MiVOS"]
+	path = lib/MiVOS
+	url = https://github.com/Lim-Kevin/MiVOS_fork.git
+	branch = MiVOS-STCN
