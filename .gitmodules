@@ -1,13 +1,7 @@
-[submodule "lib/Scribble_to_Mask"]
-	path = lib/Scribble_to_Mask
-	url = https://github.com/Lim-Kevin/Scribble_to_Mask_fork.git
-[submodule "lib/Mask_Propagation"]
-	path = lib/Mask_Propagation
-	url = https://github.com/Lim-Kevin/Mask_Propagation_fork.git
 [submodule "lib/ProPainter"]
 	path = lib/ProPainter
 	url = https://github.com/Lim-Kevin/ProPainter_fork.git
-[submodule "lib/MiVOS"]
-	path = lib/MiVOS
+[submodule "lib/MiVOS_STCN"]
+	path = lib/MiVOS_STCN
 	url = https://github.com/Lim-Kevin/MiVOS_fork.git
 	branch = MiVOS-STCN

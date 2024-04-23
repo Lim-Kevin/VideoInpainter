@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 
 import cv2
 from PIL import Image
@@ -77,3 +78,17 @@ def resize_image_to_frame(image, frame_path):
     width, height = frame.size
     resized_image = image.resize((width, height))
     return resized_image
+
+
+def array_to_bytesio(image_array):
+    # Convert the NumPy array to an image
+    image = Image.fromarray(image_array)
+
+    # Create a BytesIO object to store the image data
+    img_io = BytesIO()
+
+    # Save the image to the BytesIO object in PNG format
+    image.save(img_io, 'PNG')
+    img_io.seek(0)
+
+    return img_io
