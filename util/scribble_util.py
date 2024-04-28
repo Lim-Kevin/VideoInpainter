@@ -1,64 +1,23 @@
-import os
 from io import BytesIO
 
-import cv2
 import numpy as np
-import torch
 from PIL import Image
 
-from lib.Scribble_to_Mask.interactive import InteractiveManager
-from lib.Scribble_to_Mask.model.network import deeplabv3plus_resnet50 as S2M
+from lib.MiVOS_STCN.interact.interaction import ScribbleInteraction
 
 
-class MyManager(InteractiveManager):
+class MyScribbleInteraction(ScribbleInteraction):
+    def __init__(self, image, prev_mask, true_size, controller, num_objects):
+        super().__init__(image, prev_mask, true_size, controller, num_objects)
 
-    def __init__(self):
-        self.color = 255
-
-    def setup_manager(self, image_path, mask_path):
+    def push_drawing(self, drawing_points, k=1):
         """
-        Copied from Scribble_to_mask submodule
-        :param image_path: Path to the saved image the scribble is on
-        :param mask_path: Optional path to mask if one already exists
+        Uploads a drawing for the scribble to mask interaction
+        :param drawing_points: Points used in the drawing, without connection lines
+        :param k: Object id in case there are multiple objects
         """
+        self.curr_path[k] = drawing_points
 
-        # network stuff
-        net = S2M()
-        net.load_state_dict(torch.load('saves/s2m.pth'))
-        net = net.cuda().eval()
-        torch.set_grad_enabled(False)
-        # Reading stuff
-        image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-        h, w = image.shape[:2]
-
-        # If a mask already exist, paint on top of it
-        if os.path.exists(mask_path):
-            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-        else:
-            mask = np.zeros((h, w), dtype=np.uint8)
-        super().__init__(net, image, mask)
-
-    # TODO: Add negative scribbles
-    def run_s2m(self, p_srb, n_srb=None):
-        """
-        Generates a mask out of scribbles
-        :param p_srb: Positive scribbles
-        :param n_srb: Negative scribbles
-        :return: A mask as an array
-        """
-
-        self.p_srb = p_srb
-        np_mask = super().run_s2m()
-
-        threshhold = 0.5
-        np_mask = np.where(np_mask < 255 * threshhold, 0, self.color)
-
-        # Change colors to make propagation recognize different objects
-        self.color = self.color - 1
-        if self.color == 0:
-            self.color = 255
-
-        return np_mask
 
 
 def comp_image(mask_path):

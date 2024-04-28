@@ -1,19 +1,13 @@
-import base64
 import os
 import shutil
-from io import BytesIO
+import uuid
 
-import cv2
-import numpy as np
-from PIL import Image
-from flask import Flask, flash, request, redirect, send_from_directory, render_template, jsonify, send_file, url_for, \
+from flask import Flask, flash, request, redirect, send_from_directory, render_template, send_file, url_for, \
     session
 from werkzeug.utils import secure_filename
 
-from lib.ProPainter.inference_propainter import inpaint
-from util.interactive_util import save_frames, get_video_info, resize_image_to_frame
-from util.propagation_util import propagate_all
-from util.scribble_util import comp_image, MyManager
+from util.MiVOS_util import MiVOS_Manager
+from util.interactive_util import array_to_bytesio, get_video_info, save_frames
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -29,8 +23,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
-
-s2m_manager = MyManager()
+mivos_manager = MiVOS_Manager()
 
 
 # TODO: Use flashes
@@ -63,14 +56,23 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             session['video_uploaded'] = True
-            clear_folder(app.config['UPLOAD_FOLDER'])
-            session['name'] = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], session.get('name'))
-            file.save(file_path)
-            # Saving every frame
-            save_frames(file_path, os.path.join(app.config['UPLOAD_FOLDER'], 'frames'))
+            session['video_name'] = secure_filename(file.filename)
 
+            folder_name = str(uuid.uuid4())
+            session['root_folder'] = os.path.join(app.config['UPLOAD_FOLDER'], folder_name)
+            os.makedirs(session['root_folder'])
+            # Save video
+            file_path = os.path.join(session['root_folder'], session['video_name'])
+            file.save(file_path)
+
+            # Save frames
+            frame_folder = os.path.join(session['root_folder'], 'frames')
+            save_frames(file_path, frame_folder)
             session['num_frames'], session['fps'] = get_video_info(file_path)
+            session['frame_links'] = [os.path.join(frame_folder, '{:05}.png'.format(i)) for i in
+                                      range(session['num_frames'])]
+
+            mivos_manager.setup(file_path)
             return redirect(url_for('mask_page'))
         else:
             flash('File extension not allowed')
@@ -91,53 +93,6 @@ def result_page():
     return redirect(url_for('upload_file'))
 
 
-@app.route('/save_mask', methods=['POST'])
-def save_mask():
-    data = request.get_json()
-    if 'image_data' in data:
-        image_data = data['image_data']
-        # Remove the prefix 'data:image/png;base64,' from the base64 encoded string
-        image_data = image_data.replace('data:image/png;base64,', '')
-        # Decode the base64 string to bytes
-        image_bytes = base64.b64decode(image_data)
-
-        # Get the frame the mask was drawn on
-        current_frame = int(data['current_frame'])
-
-        # Resize mask to match the frame
-        frame_path = os.path.join(app.config["UPLOAD_FOLDER"], 'frames', '{:05}.png'.format(current_frame))
-        image = Image.open(BytesIO(image_bytes)).convert('L')
-        image = resize_image_to_frame(image, frame_path)
-        image_array = np.array(image)
-
-        # Save image as an array with 1 where the scribble is
-        p_srb = np.where(image_array > 0, 1, 0)
-
-        masks_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
-        os.makedirs(masks_folder, exist_ok=True)
-        mask_path = os.path.join(masks_folder, '{:05}.png'.format(current_frame))
-
-        # Scribble to mask
-        s2m_manager.setup_manager(frame_path, mask_path)
-        np_mask = s2m_manager.run_s2m(p_srb)
-
-        # Save the mask
-        cv2.imwrite(mask_path, np_mask)
-
-        # Compose mask to display
-        comp = comp_image(mask_path)
-
-        return send_file(comp, mimetype='image/png')
-    else:
-        return jsonify({'error': 'No image data found.'}), 400
-
-
-@app.route('/again', methods=['POST'])
-def again():
-    session['video_inpainted'] = False
-    return redirect(url_for('mask_page'))
-
-
 @app.route('/uploads/<filename>')
 def get_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
@@ -145,58 +100,20 @@ def get_file(filename):
 
 @app.route('/frame/<num>')
 def get_frame(num):
-    return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'), '{:05}.png'.format(int(num)))
+    # image = mivos_manager.show_current_frame(int(num))
+    # image_io = array_to_bytesio(image)
+    # return send_file(image_io, mimetype='image/png')
+    return send_from_directory(os.path.join(session['root_folder'], 'frames'), '{:05}.png'.format(int(num)))
 
 
-@app.route('/mask/<num>')
-def get_mask(num):
-    # Check if the image exists
-    mask_path = os.path.join(app.config["UPLOAD_FOLDER"], 'masks', '{:05}.png'.format(int(num)))
-    propagated_mask_path = os.path.join(app.config["UPLOAD_FOLDER"], 'propagated_masks', '{:05}.png'.format(int(num)))
+@app.route('/upload_canvas', methods=['POST'])
+def s2m():
+    data = request.get_json()
+    drawing_points = [tuple(p) for p in data]
+    mask = mivos_manager.on_drawn(drawing_points)
+    mask_io = array_to_bytesio(mask)
 
-    if os.path.exists(mask_path):
-        image_path = mask_path
-    elif os.path.exists(propagated_mask_path):
-        image_path = propagated_mask_path
-    else:
-        return jsonify({'error': 'No image data found.'}), 204
-
-    comp = comp_image(image_path)
-    return send_file(comp, mimetype='image/png')
-
-
-is_propagating = False
-
-
-@app.route('/propagate', methods=['POST'])
-def propagate():
-    global is_propagating
-    mask_folder = os.path.join(app.config["UPLOAD_FOLDER"], 'masks')
-    if len(os.listdir(mask_folder)) == 0:
-        return 'No masks to propagate', 400, {'Content-Type': 'text/plain'}
-    if not is_propagating:
-        is_propagating = True
-        propagate_all(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
-                      os.path.join(app.config["UPLOAD_FOLDER"], 'masks'),
-                      os.path.join(app.config["UPLOAD_FOLDER"], 'propagated_masks'))
-        is_propagating = False
-    else:
-        return 'Already propagating masks', 400, {'Content-Type': 'text/plain'}
-    return 'Propagating masks', 200, {'Content-Type': 'text/plain'}
-
-
-@app.route('/inpaint', methods=['POST'])
-def inpaint_video():
-    inpaint(os.path.join(app.config["UPLOAD_FOLDER"], 'frames'),
-            os.path.join(app.config["UPLOAD_FOLDER"], 'propagated_masks'),
-            app.config["UPLOAD_FOLDER"], session.get('fps'))
-
-    # Delete old masks
-    clear_folder(os.path.join(app.config['UPLOAD_FOLDER'], 'masks'))
-    clear_folder(os.path.join(app.config['UPLOAD_FOLDER'], 'propagated_masks'))
-
-    session['video_inpainted'] = True
-    return redirect(url_for('result_page'))
+    return send_file(mask_io, mimetype='image/png')
 
 
 if __name__ == '__main__':

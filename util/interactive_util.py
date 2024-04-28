@@ -92,3 +92,11 @@ def array_to_bytesio(image_array):
     img_io.seek(0)
 
     return img_io
+
+
+def list_of_arrays_to_bytesio(image_list):
+    bytesio_list = []
+    for image_array in image_list:
+        image_io = array_to_bytesio(image_array)
+        bytesio_list.append(image_io)
+    return bytesio_list

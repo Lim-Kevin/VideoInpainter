@@ -9,9 +9,8 @@
 <h1>Draw</h1>
 <div id="video_player">
     <div id="canvas_container">
-        <img class="overlay" id="mask" alt=""/>
         <canvas class="overlay" id="cv1"></canvas>
-        <img id="slideshow" src="{{url_for('get_frame', num=0)}}"/>
+        <img id="slideshow"/>
     </div>
     <!-- TODO: update button names -->
     <div id="seekbar">
@@ -20,9 +19,9 @@
     </div>
     <div id="controls">
         <button id="play_button" onclick="play_or_pause()">Play/Pause</button>
-        <button id="reset_button" onclick="clear_canvas()">Reset scribble</button>
+        <button id="reset_button">Reset scribble</button>
         <button id="change_button">Change +/-</button>
-        <button id="propagate_button" onclick="propagate()">Propagate</button>
+        <button id="propagate_button" onclick="upload_drawing()">Propagate</button>
         <button id="inpaint_button" onclick="inpaint()">Inpaint</button>
     </div>
 </div>

@@ -3,11 +3,14 @@
  */
 var canvas = document.getElementById("cv1"),
     ctx = canvas.getContext("2d"),
-    mask_image = document.getElementById("mask");
+    slideshow = document.getElementById("slideshow");
 
 var isDrawing = false,
     lastX = 0,
     lastY = 0;
+
+// A list of points in the current drawing
+var current_drawing_points = [];
 
 // Event listeners to track mouse movements
 canvas.addEventListener('mousedown', startDrawing);
@@ -18,6 +21,8 @@ canvas.addEventListener('mouseout', stopDrawing);
 function startDrawing(e) {
     isDrawing = true;
     [lastX, lastY] = [e.offsetX, e.offsetY];
+    // Reset current drawing
+    current_drawing_points = [];
 }
 
 function draw(e) {
@@ -33,14 +38,14 @@ function draw(e) {
     ctx.lineTo(e.offsetX, e.offsetY);
     ctx.stroke();
     ctx.closePath();
+    current_drawing_points.push([lastX, lastY]);
+
     [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
 function stopDrawing(e) {
-    if (e.type === 'mouseup') {
-        save();
-    }
     isDrawing = false;
+    upload_drawing()
 }
 
 // Sets the canvas to the same size as a given element
@@ -53,24 +58,23 @@ function resize_canvas(element) {
 
 // Resize the canvas so that mouse coordinates are right
 window.onload = function () {
-    resize_canvas(img)
+    resize_canvas(slideshow);
 }
 
-// Saves the drawn mask
-function save() {
-    const imageData = canvas.toDataURL('image/png');
-    fetch('/save_mask', {
+function upload_drawing() {
+    // Convert canvas image to base64 data URL
+    var imageData = canvas.toDataURL('image/png');
+
+    // Send the image data to the server
+    fetch('/upload_canvas', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            image_data: imageData,
-            current_frame: current_frame
-        }),
+        body: JSON.stringify({ data: current_drawing_points })
     }).then(response => {
         if (!response.ok) {
-            console.error('Failed to save image.');
+            console.error('Failed to get mask.');
         }
         return response.blob()
     }).then(blob => {
@@ -78,29 +82,9 @@ function save() {
         var imageUrl = URL.createObjectURL(blob);
 
         // Display processed image
-        mask_image.src = imageUrl;
-        mask_image.style.display = 'block'
+        slideshow.src = imageUrl;
     }).catch(error => {
         console.error('Error saving image:', error);
-    });
-    // clear_canvas()
-}
-
-function propagate() {
-    let request = new XMLHttpRequest();
-    request.open("POST", "/propagate", true);
-    request.send();
-}
-
-function inpaint() {
-    fetch('inpaint', {
-        method: 'POST'
-    }).then((response)=>{
-        if(response.redirected){
-            window.location.href = response.url;
-        }
-    }).catch(error => {
-        console.error('Error inpainting:', error);
     });
 }
 

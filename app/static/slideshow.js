@@ -10,13 +10,14 @@ function play_or_pause() {
  */
 var num_frames = document.currentScript.getAttribute('num_frames'),
     fps = document.currentScript.getAttribute('fps'),
-    img = document.getElementById('slideshow'),
+    slideshow = document.getElementById('slideshow'),
+    value = document.getElementById('frames_display'),
     current_frame = 0;
 
 // Set slideshow to the current frame and overlay mask if it exists
 function update_slideshow() {
     // Set frame
-    img.src = '/frame/' + current_frame;
+    slideshow.src = '/frame/' + current_frame
 
     try {
         // Clear canvas
@@ -25,25 +26,11 @@ function update_slideshow() {
         // No canvas
     }
 
-    // Set composed mask
-    fetch('/mask/' + current_frame).then(response => {
-        if (response.status === 204) {
-            mask_image.style.display = 'none'
-        } else {
-            return response.blob()
-        }
-    }).then(blob => {
-        if (blob) {
-            mask_image.style.display = 'block'
-            // Create a URL for the blob
-            let imageUrl = URL.createObjectURL(blob);
-            // Display processed image
-            mask_image.src = imageUrl;
-        }
-    }).catch(error => {
-        // No mask overlay
-    });
+     value.textContent = "Frame: " + (current_frame + 1) + "/" + num_frames;
 }
+
+// Setting first frame
+update_slideshow()
 
 function play_slideshow() {
     if (!is_paused) {
@@ -52,7 +39,6 @@ function play_slideshow() {
             current_frame = 0;
         }
         set_seekbar_value(current_frame);
-        update_num_frame_diplay();
         update_slideshow()
     }
 }
@@ -70,6 +56,7 @@ setInterval(function () {
 var input = document.getElementById("slider"),
     datalist = document.getElementById("markers"),
     num_options = num_frames;
+
 // Hide markers if there are too many steps
 if (num_options > 200) {
     num_options = 0;
@@ -83,17 +70,11 @@ for (var i = 0; i < num_options; i++) {
 
 var value = document.getElementById("frames_display");
 
-// Displays the number of the current frame shown
-function update_num_frame_diplay() {
-    value.textContent = "Frame: " + (current_frame + 1) + "/" + num_frames;
-}
-
 function set_seekbar_value(n) {
     input.value = n;
 }
 
 input.addEventListener("change", (event) => {
     current_frame = parseInt(event.target.value);
-    update_num_frame_diplay();
     update_slideshow();
 });
