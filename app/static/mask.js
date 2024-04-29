@@ -3,7 +3,8 @@
  */
 var canvas = document.getElementById("cv1"),
     ctx = canvas.getContext("2d"),
-    slideshow = document.getElementById("slideshow");
+    slideshow = document.getElementById("slideshow"),
+    mask = document.getElementById("mask");
 
 var isDrawing = false,
     lastX = 0,
@@ -71,7 +72,7 @@ function upload_drawing() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ data: current_drawing_points })
+        body: JSON.stringify({ points: current_drawing_points, frame_num: current_frame})
     }).then(response => {
         if (!response.ok) {
             console.error('Failed to get mask.');
@@ -82,7 +83,7 @@ function upload_drawing() {
         var imageUrl = URL.createObjectURL(blob);
 
         // Display processed image
-        slideshow.src = imageUrl;
+        mask.src = imageUrl;
     }).catch(error => {
         console.error('Error saving image:', error);
     });

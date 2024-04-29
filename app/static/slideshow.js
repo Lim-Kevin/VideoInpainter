@@ -16,9 +16,19 @@ var num_frames = document.currentScript.getAttribute('num_frames'),
 
 // Set slideshow to the current frame and overlay mask if it exists
 function update_slideshow() {
+    // Reset interactions in manager
+    fetch('/reset_interaction', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+    });
+
     // Set frame
     slideshow.src = '/frame/' + current_frame
-
+    mask.src = '/mask/'  + current_frame
     try {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height)

@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 from util.MiVOS_util import MiVOS_Manager
 from util.interactive_util import array_to_bytesio, get_video_info, save_frames
+from util.scribble_util import comp_mask
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -23,7 +24,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
-mivos_manager = MiVOS_Manager()
+manager_list = []
 
 
 # TODO: Use flashes
@@ -71,8 +72,7 @@ def upload_file():
             session['num_frames'], session['fps'] = get_video_info(file_path)
             session['frame_links'] = [os.path.join(frame_folder, '{:05}.png'.format(i)) for i in
                                       range(session['num_frames'])]
-
-            mivos_manager.setup(file_path)
+            manager_list.append(MiVOS_Manager(file_path))
             return redirect(url_for('mask_page'))
         else:
             flash('File extension not allowed')
@@ -100,20 +100,31 @@ def get_file(filename):
 
 @app.route('/frame/<num>')
 def get_frame(num):
-    # image = mivos_manager.show_current_frame(int(num))
-    # image_io = array_to_bytesio(image)
-    # return send_file(image_io, mimetype='image/png')
     return send_from_directory(os.path.join(session['root_folder'], 'frames'), '{:05}.png'.format(int(num)))
+
+
+@app.route('/mask/<num>')
+def get_mask(num):
+    mask = manager_list[0].show_mask(int(num))
+    mask_io = array_to_bytesio(mask)
+    return send_file(mask_io, mimetype='image/png')
 
 
 @app.route('/upload_canvas', methods=['POST'])
 def s2m():
     data = request.get_json()
-    drawing_points = [tuple(p) for p in data]
-    mask = mivos_manager.on_drawn(drawing_points)
+    drawing_points = [tuple(p) for p in data['points']]
+    mask = manager_list[0].on_drawn(drawing_points, data['frame_num'])
+
     mask_io = array_to_bytesio(mask)
 
     return send_file(mask_io, mimetype='image/png')
+
+
+@app.route('/reset_interaction', methods=['POST'])
+def reset_interaction():
+    manager_list[0].reset_this_interaction()
+    return 'Reset interaction', 200
 
 
 if __name__ == '__main__':

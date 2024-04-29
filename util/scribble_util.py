@@ -1,5 +1,6 @@
 from io import BytesIO
 
+import cv2
 import numpy as np
 from PIL import Image
 
@@ -17,33 +18,23 @@ class MyScribbleInteraction(ScribbleInteraction):
         :param k: Object id in case there are multiple objects
         """
         self.curr_path[k] = drawing_points
+        selected = self.curr_path[k]
+        if len(selected) >= 2:
+            self.drawn_map = cv2.line(self.drawn_map,
+                                      (int(round(selected[-2][0])), int(round(selected[-2][1]))),
+                                      (int(round(selected[-1][0])), int(round(selected[-1][1]))),
+                                      k, thickness=self.size)
 
 
-
-def comp_image(mask_path):
+def comp_mask(mask):
     """
-    Puts the mask and the scribbles together into one image
-    :param mask_path: The path to the mask
-    :return: A composed 4-channel image as a BytesIO object
+    Makes an image where the mask is colored and slightly transparent
+    :param mask: a 1-channel image with 1 where the mask is
+    :return: a 4-channel image
     """
-
-    image = Image.open(mask_path)
-    # 1-channel array, 255 where the mask is
-    mask_array = np.array(image)
-
-    # Create an empty 4-channel image
-    comp = np.zeros((mask_array.shape[0], mask_array.shape[1], 4), dtype=np.uint8)
-
-    # Red wherever the mask is
-    comp[:, :, 0] = mask_array
-
-    # Make the image be transparent where there is no color
-    alpha = np.where(mask_array == 0, 0, 128)
-    comp[:, :, 3] = alpha
-
-    output = BytesIO()
-    temp = Image.fromarray(comp)
-    temp.save(output, format='PNG')
-    output.seek(0)
+    output = np.zeros((*mask.shape, 4), dtype=np.uint8)
+    output[mask == 1, :3] = [255, 0, 0]
+    output[mask == 1, 3] = 128
+    return output
 
     return output

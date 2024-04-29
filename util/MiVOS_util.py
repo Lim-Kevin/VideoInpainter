@@ -6,38 +6,16 @@ import torch
 from PIL.Image import Image
 
 from lib.MiVOS_STCN.inference_core import InferenceCore
-from lib.MiVOS_STCN.interact.interactive_utils import load_video, images_to_torch, overlay_davis
+from lib.MiVOS_STCN.interact.interactive_utils import load_video, images_to_torch
 from lib.MiVOS_STCN.interact.s2m_controller import S2MController
 from lib.MiVOS_STCN.model.fusion_net import FusionNet
 from lib.MiVOS_STCN.model.propagation.prop_net import PropagationNetwork
 from lib.MiVOS_STCN.model.s2m.s2m_network import deeplabv3plus_resnet50 as S2M
-from util.scribble_util import MyScribbleInteraction
+from util.scribble_util import MyScribbleInteraction, comp_mask
 
 
 class MiVOS_Manager:
-    def __init__(self):
-        self.images = None
-        self.num_frames = None
-        self.height = None
-        self.width = None
-        self.num_objects = None
-        self.s2m_controller = None
-        self.processor = None
-
-        self.current_mask = None
-        self.vis_map = None
-        self.vis_alpha = None
-        self.brush_vis_map = None
-        self.brush_vis_alpha = None
-        self.vis_hist = None
-        self.cursur = None
-
-        self.interactions = None
-        self.this_frame_interactions = None
-        self.interaction = None
-        self.interacted_mask = None
-
-    def setup(self, video_path, resolution=480):
+    def __init__(self, video_path, resolution=480):
         # Set up models
         with torch.cuda.amp.autocast(enabled=True):
             # Load our checkpoint
@@ -105,9 +83,6 @@ class MiVOS_Manager:
 
         return self.images[num]
 
-    def get_mask(self, num):
-        return self.current_mask[num]
-
     def clear_visualization(self):
         self.vis_map.fill(0)
         self.vis_alpha.fill(0)
@@ -140,20 +115,24 @@ class MiVOS_Manager:
 
         self.interacted_mask = None
         # clear scribble and reset
-        self.show_current_frame()
+        self.show_mask()
         self.reset_this_interaction()
         # self.progress.setFormat('Idle')
         # self.progress.setValue(0)
         print('Propagation finished!')
+        # TODO: Save mask frames after propagating
         # self.user_timer.start()
 
-    def on_drawn(self, drawing_points):
+    def on_drawn(self, drawing_points, frame_num):
         """
         Execute after a scribble was drawn
         :param drawing_points: The points in the scribble as a list of tuples (only points, no connection lines)
+        :param frame_num: The number of the frame that is being drawn on
         :return: Predicted mask of the scribbles
         """
-        #on_press()
+        self.cursur = frame_num
+
+        # on_press()
         # self.right_click = (event.button() != 1)
 
         # Push last vis map into history
@@ -164,12 +143,13 @@ class MiVOS_Manager:
         h, w = self.height, self.width
 
         if self.interaction is None:
-            self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller, self.num_objects)
+            self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller,
+                                                     self.num_objects)
 
-        #on_motion()
+        # on_motion()
         self.interaction.push_drawing(drawing_points)
 
-        #on_release()
+        # on_release()
         print('Interaction at frame %d.' % self.cursur)
 
         interaction = self.interaction
@@ -189,6 +169,8 @@ class MiVOS_Manager:
             else:
                 self.reset_this_interaction()
                 self.interacted_mask = self.processor.prob[:, self.cursur].clone()
+
+
         else:
             if self.interaction.can_undo():
                 self.interacted_mask = self.interaction.undo()
@@ -210,11 +192,12 @@ class MiVOS_Manager:
 
     def on_reset(self):
         # DO not edit prob -- we still need the mask diff
+
         self.processor.masks[self.cursur].zero_()
         self.processor.np_masks[self.cursur].fill(0)
         self.current_mask[self.cursur].fill(0)
         self.reset_this_interaction()
-        self.show_current_frame()
+        self.show_mask(self.cursur)
 
     def on_press(self):
         # self.right_click = (event.button() != 1)
@@ -227,7 +210,8 @@ class MiVOS_Manager:
         h, w = self.height, self.width
 
         if self.interaction is None:
-            self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller, self.num_objects)
+            self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller,
+                                                     self.num_objects)
 
         # Just motion it as the first step
         # Show frame and mask
@@ -236,27 +220,27 @@ class MiVOS_Manager:
     def update_interacted_mask(self):
         """
         Calculate the currently interacted mask
-        :return: Overlay with the frame and the mask
+        :return: a transparent image with the mask in red
         """
+
         self.processor.update_mask_only(self.interacted_mask, self.cursur)
         self.current_mask[self.cursur] = self.processor.np_masks[self.cursur]
-        return self.show_current_frame(self.cursur)
+        return self.show_mask(self.cursur)
 
-    def show_current_frame(self, num):
+    def show_mask(self, num):
         """
-        Calculate the overlay composed of the current video-frame and the current mask
+        Convert the mask to a 1-channel image with 1 where the mask is
         :param num: The number of the current frame
-        :return: Current overlay
+        :return: 1-channel mask image as an array
         """
-        return overlay_davis(self.images[num], self.current_mask[num])
-
+        return comp_mask(self.current_mask[num])
 
     def complete_interaction(self):
         if self.interaction is not None:
             self.clear_visualization()
+
             self.interactions['annotated_frame'].append(self.cursur)
             self.interactions['interact'][self.cursur].append(self.interaction)
             self.this_frame_interactions.append(self.interaction)
             self.interaction = None
             # self.undo_button.setDisabled(False)
-

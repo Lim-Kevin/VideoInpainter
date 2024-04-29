@@ -1,3 +1,7 @@
 #play_button {
     flex: 2;
 }
+
+mask {
+    z-index: 10;
+}
