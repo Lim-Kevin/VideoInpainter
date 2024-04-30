@@ -19,6 +19,7 @@ class MyScribbleInteraction(ScribbleInteraction):
         """
         self.curr_path[k] = drawing_points
         selected = self.curr_path[k]
+        print(self.curr_path)
         if len(selected) >= 2:
             self.drawn_map = cv2.line(self.drawn_map,
                                       (int(round(selected[-2][0])), int(round(selected[-2][1]))),
@@ -35,6 +36,4 @@ def comp_mask(mask):
     output = np.zeros((*mask.shape, 4), dtype=np.uint8)
     output[mask == 1, :3] = [255, 0, 0]
     output[mask == 1, 3] = 128
-    return output
-
     return output

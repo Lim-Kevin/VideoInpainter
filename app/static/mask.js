@@ -28,16 +28,16 @@ class MaskSlideshow extends Slideshow {
             // No canvas
         }
 
-        this.value.textContent = "Frame: " + (this._current_frame + 1) + "/" + this.num_frames;
+        this.value.textContent = 'Frame: ' + (this._current_frame + 1) + '/' + this.num_frames;
     }
 }
 
 /*
     Setting up the canvas
  */
-let canvas = document.getElementById("cv1"),
-    ctx = canvas.getContext("2d"),
-    mask = document.getElementById("mask");
+let canvas = document.getElementById('cv1'),
+    ctx = canvas.getContext('2d'),
+    mask = document.getElementById('mask');
 
 let num_frames = document.currentScript.getAttribute('num_frames'),
     fps = document.currentScript.getAttribute('fps');
@@ -45,12 +45,21 @@ let num_frames = document.currentScript.getAttribute('num_frames'),
 let slideshow = new MaskSlideshow(num_frames, fps);
 
 let is_drawing = false,
-    right_click = false,
+
+    is_pos_scribbles = true,
     lastX = 0,
     lastY = 0;
 
 // A list of points in the current drawing
 let current_drawing_points = [];
+
+let change_button = document.getElementById('change_button');
+
+function change_pos_neg() {
+    is_pos_scribbles = !is_pos_scribbles;
+}
+
+change_button.onclick = change_pos_neg;
 
 // Event listeners to track mouse movements
 canvas.addEventListener('mousedown', startDrawing);
@@ -59,12 +68,20 @@ canvas.addEventListener('mouseup', finishDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
 function startDrawing(e) {
-    is_drawing = true;
     if (e.button === 2) {
-        right_click = true;
-    } else {
-        right_click = false;
+        return;
     }
+    is_drawing = true;
+    if (is_pos_scribbles) {
+        ctx.strokeStyle = 'green'
+    } else {
+        ctx.strokeStyle = 'blue';
+    }
+    ctx.lineWidth = 5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 3;
+
     [lastX, lastY] = [e.offsetX, e.offsetY];
     // Reset current drawing
     current_drawing_points = [];
@@ -73,22 +90,12 @@ function startDrawing(e) {
 function draw(e) {
     if (!is_drawing) return; // Stop the function if not drawing
 
-    if (right_click) {
-        ctx.strokeStyle = 'blue';
-    } else {
-        ctx.strokeStyle = 'green'
-    }
-    ctx.lineWidth = 5;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-
-    ctx.lineWidth = 3;
-
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(e.offsetX, e.offsetY);
     ctx.stroke();
     ctx.closePath();
+
     current_drawing_points.push([lastX, lastY]);
 
     [lastX, lastY] = [e.offsetX, e.offsetY];
@@ -99,6 +106,9 @@ function stopDrawing(e) {
 }
 
 function finishDrawing(e) {
+    if (e.button === 2) {
+        return;
+    }
     is_drawing = false;
     upload_drawing();
 }
@@ -128,7 +138,7 @@ function upload_drawing() {
         body: JSON.stringify({
             points: current_drawing_points,
             frame_num: slideshow.current_frame,
-            k: !right_click
+            k: is_pos_scribbles
         })
     }).then(response => {
         if (!response.ok) {
@@ -144,7 +154,6 @@ function upload_drawing() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
-    right_click = false;
 }
 
 // TODO: Make a function delete the mask on that frame, set it to reset button
