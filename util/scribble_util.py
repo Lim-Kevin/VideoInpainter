@@ -15,7 +15,7 @@ class MyScribbleInteraction(ScribbleInteraction):
         """
         Uploads a drawing for the scribble to mask interaction
         :param drawing_points: Points used in the drawing, without connection lines
-        :param k: Object id in case there are multiple objects
+        :param k: Object id, 0 for negative scribbles, 1 else
         """
         self.curr_path[k] = drawing_points
         selected = self.curr_path[k]

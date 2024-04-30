@@ -51,7 +51,7 @@ class MiVOS_Manager:
         self.brush_vis_alpha = np.zeros((self.height, self.width, 1), dtype=np.float32)
         self.vis_hist = deque(maxlen=100)
 
-        # TODO: Set self.cursur to currentFrame
+        # self.cursur is set to the number of the current frame we look at
         self.cursur = 0
 
         # initialize action
@@ -76,9 +76,6 @@ class MiVOS_Manager:
             mask = Image.fromarray(self.current_mask[i]).convert('P')
             # mask.putpalette(palette)
             mask.save(os.path.join(mask_dir, '{:05d}.png'.format(i)))
-
-    def get_frame(self, num):
-        return self.images[num]
 
     def clear_visualization(self):
         self.vis_map.fill(0)
@@ -120,11 +117,12 @@ class MiVOS_Manager:
         # TODO: Save mask frames after propagating
         # self.user_timer.start()
 
-    def on_drawn(self, drawing_points, frame_num):
+    def on_drawn(self, drawing_points, frame_num, k):
         """
         Execute after a scribble was drawn
         :param drawing_points: The points in the scribble as a list of tuples (only points, no connection lines)
         :param frame_num: The number of the frame that is being drawn on
+        :param k: Object id, 0 for negative scribbles, else 1
         :return: Predicted mask of the scribbles
         """
         self.cursur = frame_num
@@ -144,7 +142,7 @@ class MiVOS_Manager:
                                                      self.num_objects)
 
         # on_motion()
-        self.interaction.push_drawing(drawing_points)
+        self.interaction.push_drawing(drawing_points, k)
 
         # on_release()
         print('Interaction at frame %d.' % self.cursur)

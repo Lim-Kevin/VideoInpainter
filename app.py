@@ -114,7 +114,7 @@ def get_mask(num):
 def s2m():
     data = request.get_json()
     drawing_points = [tuple(p) for p in data['points']]
-    mask = manager_list[0].on_drawn(drawing_points, data['frame_num'])
+    mask = manager_list[0].on_drawn(drawing_points, data['frame_num'], int(data['k']))
 
     mask_io = array_to_bytesio(mask)
     return send_file(mask_io, mimetype='image/png')

@@ -5,3 +5,12 @@
 mask {
     z-index: 10;
 }
+
+#cv1 {
+    z-index: 20;
+}
+
+#canvas_container {
+    position: relative;
+    display: inline-block;
+}

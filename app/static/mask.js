@@ -8,7 +8,7 @@ class MaskSlideshow extends Slideshow {
     }
 
     update_slideshow() {
-                // Reset interactions in manager
+        // Reset interactions in manager
         fetch('/reset_interaction', {
             method: 'POST',
             headers: {
@@ -44,7 +44,8 @@ let num_frames = document.currentScript.getAttribute('num_frames'),
 
 let slideshow = new MaskSlideshow(num_frames, fps);
 
-let isDrawing = false,
+let is_drawing = false,
+    right_click = false,
     lastX = 0,
     lastY = 0;
 
@@ -58,18 +59,29 @@ canvas.addEventListener('mouseup', finishDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
 function startDrawing(e) {
-    isDrawing = true;
+    is_drawing = true;
+    if (e.button === 2) {
+        right_click = true;
+    } else {
+        right_click = false;
+    }
     [lastX, lastY] = [e.offsetX, e.offsetY];
     // Reset current drawing
     current_drawing_points = [];
 }
 
 function draw(e) {
-    if (!isDrawing) return; // Stop the function if not drawing
+    if (!is_drawing) return; // Stop the function if not drawing
+
+    if (right_click) {
+        ctx.strokeStyle = 'blue';
+    } else {
+        ctx.strokeStyle = 'green'
+    }
     ctx.lineWidth = 5;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.strokeStyle = 'blue';
+
     ctx.lineWidth = 3;
 
     ctx.beginPath();
@@ -83,12 +95,12 @@ function draw(e) {
 }
 
 function stopDrawing(e) {
-    isDrawing = false;
+    is_drawing = false;
 }
 
 function finishDrawing(e) {
-    isDrawing = false;
-    upload_drawing()
+    is_drawing = false;
+    upload_drawing();
 }
 
 // Sets the canvas to the same size as a given element
@@ -107,19 +119,22 @@ window.onload = function () {
 function upload_drawing() {
     // Convert canvas image to base64 data URL
     let imageData = canvas.toDataURL('image/png');
-
     // Send the image data to the server
     fetch('/upload_canvas', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ points: current_drawing_points, frame_num: slideshow.current_frame})
+        body: JSON.stringify({
+            points: current_drawing_points,
+            frame_num: slideshow.current_frame,
+            k: !right_click
+        })
     }).then(response => {
         if (!response.ok) {
             console.error('Failed to get mask.');
         }
-        return response.blob()
+        return response.blob();
     }).then(blob => {
         // Create a URL for the blob
         let imageUrl = URL.createObjectURL(blob);
@@ -129,6 +144,7 @@ function upload_drawing() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
+    right_click = false;
 }
 
 // TODO: Make a function delete the mask on that frame, set it to reset button
