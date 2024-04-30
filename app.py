@@ -117,7 +117,6 @@ def s2m():
     mask = manager_list[0].on_drawn(drawing_points, data['frame_num'])
 
     mask_io = array_to_bytesio(mask)
-
     return send_file(mask_io, mimetype='image/png')
 
 

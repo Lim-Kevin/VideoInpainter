@@ -78,9 +78,6 @@ class MiVOS_Manager:
             mask.save(os.path.join(mask_dir, '{:05d}.png'.format(i)))
 
     def get_frame(self, num):
-        # self.viz = overlay_davis(self.images[self.cursur], self.current_mask[self.cursur])
-        # self.update_interact_vis()
-
         return self.images[num]
 
     def clear_visualization(self):

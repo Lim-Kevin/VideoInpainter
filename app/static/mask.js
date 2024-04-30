@@ -1,22 +1,60 @@
 /*
+    Setting up the slideshow
+ */
+
+class MaskSlideshow extends Slideshow {
+    constructor(num_frames, fps) {
+        super(num_frames, fps);
+    }
+
+    update_slideshow() {
+                // Reset interactions in manager
+        fetch('/reset_interaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+
+        // Set frame
+        this._slides.src = '/frame/' + this._current_frame
+        mask.src = '/mask/' + this._current_frame
+        try {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+        } catch (e) {
+            // No canvas
+        }
+
+        this.value.textContent = "Frame: " + (this._current_frame + 1) + "/" + this.num_frames;
+    }
+}
+
+/*
     Setting up the canvas
  */
-var canvas = document.getElementById("cv1"),
+let canvas = document.getElementById("cv1"),
     ctx = canvas.getContext("2d"),
-    slideshow = document.getElementById("slideshow"),
     mask = document.getElementById("mask");
 
-var isDrawing = false,
+let num_frames = document.currentScript.getAttribute('num_frames'),
+    fps = document.currentScript.getAttribute('fps');
+
+let slideshow = new MaskSlideshow(num_frames, fps);
+
+let isDrawing = false,
     lastX = 0,
     lastY = 0;
 
 // A list of points in the current drawing
-var current_drawing_points = [];
+let current_drawing_points = [];
 
 // Event listeners to track mouse movements
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseup', finishDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
 function startDrawing(e) {
@@ -46,6 +84,10 @@ function draw(e) {
 
 function stopDrawing(e) {
     isDrawing = false;
+}
+
+function finishDrawing(e) {
+    isDrawing = false;
     upload_drawing()
 }
 
@@ -59,12 +101,12 @@ function resize_canvas(element) {
 
 // Resize the canvas so that mouse coordinates are right
 window.onload = function () {
-    resize_canvas(slideshow);
+    resize_canvas(slideshow.slides);
 }
 
 function upload_drawing() {
     // Convert canvas image to base64 data URL
-    var imageData = canvas.toDataURL('image/png');
+    let imageData = canvas.toDataURL('image/png');
 
     // Send the image data to the server
     fetch('/upload_canvas', {
@@ -72,7 +114,7 @@ function upload_drawing() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ points: current_drawing_points, frame_num: current_frame})
+        body: JSON.stringify({ points: current_drawing_points, frame_num: slideshow.current_frame})
     }).then(response => {
         if (!response.ok) {
             console.error('Failed to get mask.');
@@ -80,7 +122,7 @@ function upload_drawing() {
         return response.blob()
     }).then(blob => {
         // Create a URL for the blob
-        var imageUrl = URL.createObjectURL(blob);
+        let imageUrl = URL.createObjectURL(blob);
 
         // Display processed image
         mask.src = imageUrl;
