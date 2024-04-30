@@ -2,6 +2,7 @@ import os
 import shutil
 import uuid
 
+from PIL.Image import Image
 from flask import Flask, flash, request, redirect, send_from_directory, render_template, send_file, url_for, \
     session
 from werkzeug.utils import secure_filename
@@ -118,6 +119,17 @@ def s2m():
 
     mask_io = array_to_bytesio(mask)
     return send_file(mask_io, mimetype='image/png')
+
+
+@app.route('/propagate', methods=['POST'])
+def propagate():
+    data = request.get_json()
+    mask_list = manager_list[0].on_run(data['frame_num'])
+
+    for i in range(len(mask_list)):
+        img = Image.fromarray(mask_list[i]).convert('P')
+        img.save(os.path.join(session['root_folder'], 'masks', '{:05d}.png'.format(i)))
+    return 'Propagated', 200
 
 
 @app.route('/reset_interaction', methods=['POST'])

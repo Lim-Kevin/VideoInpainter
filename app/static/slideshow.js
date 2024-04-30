@@ -28,12 +28,26 @@ class Slideshow {
         this.input.addEventListener("change", (event) => {
             this._current_frame = parseInt(event.target.value);
             this.update_slideshow();
+            this.reset_interaction();
+            console.log('change')
         });
 
         this.playbutton.addEventListener('click', this.play_or_pause.bind(this));
 
         setInterval(this.play_slideshow.bind(this), 1/this.fps* 1000);
 
+    }
+
+    reset_interaction() {
+            // Reset interactions in manager
+        fetch('/reset_interaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
     }
 
     set_seekbar_value(n) {

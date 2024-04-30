@@ -8,16 +8,6 @@ class MaskSlideshow extends Slideshow {
     }
 
     update_slideshow() {
-        // Reset interactions in manager
-        fetch('/reset_interaction', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-        });
-
         // Set frame
         this._slides.src = '/frame/' + this._current_frame
         mask.src = '/mask/' + this._current_frame
@@ -106,9 +96,11 @@ function stopDrawing(e) {
 }
 
 function finishDrawing(e) {
+    // If right mouse button was released, do nothing
     if (e.button === 2) {
         return;
     }
+
     is_drawing = false;
     upload_drawing();
 }
@@ -127,8 +119,6 @@ window.onload = function () {
 }
 
 function upload_drawing() {
-    // Convert canvas image to base64 data URL
-    let imageData = canvas.toDataURL('image/png');
     // Send the image data to the server
     fetch('/upload_canvas', {
         method: 'POST',
@@ -156,5 +146,19 @@ function upload_drawing() {
     });
 }
 
-// TODO: Make a function delete the mask on that frame, set it to reset button
+function propagate() {
+        // Send the image data to the server
+    fetch('/propagate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            frame_num: slideshow.current_frame
+        })
+    }).catch(error => {
+        console.error('Error saving image:', error);
+    });
+    slideshow.update_slideshow()
+}
 

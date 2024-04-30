@@ -90,30 +90,32 @@ class MiVOS_Manager:
         self.this_frame_interactions = []
         # self.undo_button.setDisabled(True)
 
-    def on_run(self):
+    def on_run(self, frame_num):
         """
         Propagation
         """
+        self.cursur = frame_num
+
         if self.interacted_mask is None:
             print('Cannot propagate! No interacted mask!')
             return
 
-        print('Propagation started.')
+        print('Propagation started on frame ' + str(frame_num))
         # self.interacted_mask = torch.softmax(self.interacted_mask*1000, dim=0)
 
         # A list of propagated masks
-        # progress_total and progress_step are for the progressbar
-        # self.current_mask = self.processor.interact(self.interacted_mask, self.cursur,
-        #                                             self.progress_total_cb, self.progress_step_cb)
         self.current_mask = self.processor.interact(self.interacted_mask, self.cursur)
 
         self.interacted_mask = None
         # clear scribble and reset
-        self.show_mask()
         self.reset_this_interaction()
+        # return self.show_mask(self.cursur)
+        print('Propagation finished')
+        return self.current_mask
+
         # self.progress.setFormat('Idle')
         # self.progress.setValue(0)
-        print('Propagation finished!')
+
         # TODO: Save mask frames after propagating
         # self.user_timer.start()
 
