@@ -17,20 +17,19 @@ from util.scribble_util import MyScribbleInteraction, comp_mask
 class MiVOS_Manager:
     def __init__(self, video_path, resolution=480):
         # Set up models
-        with torch.cuda.amp.autocast(enabled=True):
-            # Load our checkpoint
-            prop_saved = torch.load('saves/stcn.pth')
-            prop_model = PropagationNetwork().cuda().eval()
-            prop_model.load_state_dict(prop_saved)
+        # Load our checkpoint
+        prop_saved = torch.load('saves/stcn.pth')
+        prop_model = PropagationNetwork().cuda().eval()
+        prop_model.load_state_dict(prop_saved)
 
-            fusion_saved = torch.load('saves/fusion_stcn.pth')
-            fuse_model = FusionNet().cuda().eval()
-            fuse_model.load_state_dict(fusion_saved)
+        fusion_saved = torch.load('saves/fusion_stcn.pth')
+        fuse_model = FusionNet().cuda().eval()
+        fuse_model.load_state_dict(fusion_saved)
 
-            # Loads the S2M model
-            s2m_saved = torch.load('saves/s2m.pth')
-            s2m_model = S2M().cuda().eval()
-            s2m_model.load_state_dict(s2m_saved)
+        # Loads the S2M model
+        s2m_saved = torch.load('saves/s2m.pth')
+        s2m_model = S2M().cuda().eval()
+        s2m_model.load_state_dict(s2m_saved)
 
         # Loads the images/masks
         # Set resolution=-1 to use original size
@@ -91,6 +90,7 @@ class MiVOS_Manager:
         # self.undo_button.setDisabled(True)
 
     def on_run(self, frame_num):
+
         """
         Propagation
         """
@@ -104,7 +104,9 @@ class MiVOS_Manager:
         # self.interacted_mask = torch.softmax(self.interacted_mask*1000, dim=0)
 
         # A list of propagated masks
-        self.current_mask = self.processor.interact(self.interacted_mask, self.cursur)
+
+        with torch.cuda.amp.autocast(enabled=True) and torch.set_grad_enabled(False):
+            self.current_mask = self.processor.interact(self.interacted_mask, self.cursur)
 
         self.interacted_mask = None
         # clear scribble and reset
@@ -152,7 +154,9 @@ class MiVOS_Manager:
         interaction = self.interaction
         interaction.end_path()
 
-        self.interacted_mask = interaction.predict()
+        with torch.cuda.amp.autocast(enabled=True) and torch.set_grad_enabled(False):
+            self.interacted_mask = interaction.predict()
+
         return self.update_interacted_mask()
 
         # self.pressed = self.right_click = False

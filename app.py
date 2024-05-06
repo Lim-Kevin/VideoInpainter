@@ -2,14 +2,13 @@ import os
 import shutil
 import uuid
 
-from PIL.Image import Image
+from PIL import Image
 from flask import Flask, flash, request, redirect, send_from_directory, render_template, send_file, url_for, \
     session
 from werkzeug.utils import secure_filename
 
 from util.MiVOS_util import MiVOS_Manager
 from util.interactive_util import array_to_bytesio, get_video_info, save_frames
-from util.scribble_util import comp_mask
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -26,7 +25,6 @@ app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=Tru
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 manager_list = []
-
 
 # TODO: Use flashes
 # TODO: Add progressbars in UI
@@ -126,9 +124,14 @@ def propagate():
     data = request.get_json()
     mask_list = manager_list[0].on_run(data['frame_num'])
 
+    mask_folder = os.path.join(session['root_folder'], 'masks')
+    os.makedirs(mask_folder, exist_ok=True)
+
     for i in range(len(mask_list)):
-        img = Image.fromarray(mask_list[i]).convert('P')
-        img.save(os.path.join(session['root_folder'], 'masks', '{:05d}.png'.format(i)))
+        img_array = mask_list[i]
+        img_array[img_array == 1] = 255
+        img = Image.fromarray(img_array)
+        img.save(os.path.join(mask_folder, '{:05d}.png'.format(i)))
     return 'Propagated', 200
 
 

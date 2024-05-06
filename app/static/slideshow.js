@@ -29,7 +29,6 @@ class Slideshow {
             this._current_frame = parseInt(event.target.value);
             this.update_slideshow();
             this.reset_interaction();
-            console.log('change')
         });
 
         this.playbutton.addEventListener('click', this.play_or_pause.bind(this));
