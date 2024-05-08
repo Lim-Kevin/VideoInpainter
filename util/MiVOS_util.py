@@ -11,7 +11,7 @@ from lib.MiVOS_STCN.interact.s2m_controller import S2MController
 from lib.MiVOS_STCN.model.fusion_net import FusionNet
 from lib.MiVOS_STCN.model.propagation.prop_net import PropagationNetwork
 from lib.MiVOS_STCN.model.s2m.s2m_network import deeplabv3plus_resnet50 as S2M
-from util.scribble_util import MyScribbleInteraction, comp_mask
+from util.scribble_util import MyScribbleInteraction
 
 
 class MiVOS_Manager:
@@ -99,8 +99,6 @@ class MiVOS_Manager:
         if self.interacted_mask is None:
             print('Cannot propagate! No interacted mask!')
             return
-
-        print('Propagation started on frame ' + str(frame_num))
         # self.interacted_mask = torch.softmax(self.interacted_mask*1000, dim=0)
 
         # A list of propagated masks
@@ -112,6 +110,7 @@ class MiVOS_Manager:
         # clear scribble and reset
         self.reset_this_interaction()
         # return self.show_mask(self.cursur)
+
         print('Propagation finished')
         return self.current_mask
 
@@ -198,7 +197,7 @@ class MiVOS_Manager:
         self.processor.np_masks[self.cursur].fill(0)
         self.current_mask[self.cursur].fill(0)
         self.reset_this_interaction()
-        self.show_mask(self.cursur)
+        # self.show_mask(self.cursur)
 
     def on_press(self):
         # self.right_click = (event.button() != 1)
@@ -226,15 +225,13 @@ class MiVOS_Manager:
 
         self.processor.update_mask_only(self.interacted_mask, self.cursur)
         self.current_mask[self.cursur] = self.processor.np_masks[self.cursur]
-        return self.show_mask(self.cursur)
+        return self.current_mask[self.cursur]
 
-    def show_mask(self, num):
-        """
-        Convert the mask to a 1-channel image with 1 where the mask is
-        :param num: The number of the current frame
-        :return: 1-channel mask image as an array
-        """
-        return comp_mask(self.current_mask[num])
+    def get_mask(self, num):
+        return self.current_mask[num]
+
+    def get_masks(self):
+        return self.current_mask
 
     def complete_interaction(self):
         if self.interaction is not None:

@@ -10,16 +10,37 @@ class MaskSlideshow extends Slideshow {
     update_slideshow() {
         // Set frame
         this._slides.src = '/frame/' + this._current_frame
-        mask.src = '/mask/' + this._current_frame
+
+        // Set mask
+        fetch('/mask/' + this._current_frame).then(response => {
+            if (response.status === 304) {
+                // Image not modified
+                return;
+            } else if (!response.ok) {
+                console.error('Failed to get mask.');
+            }
+            return response.blob();
+        }).then(blob => {
+            // Create a URL for the blob
+            let imageUrl = URL.createObjectURL(blob);
+
+            // Display processed image
+            mask.src = imageUrl;
+        }).catch(error => {
+            console.error('Error saving image:', error);
+        });
+
+        // Clear canvas
         try {
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height)
         } catch (e) {
-            // No canvas
+            console.error(e)
         }
 
         this.value.textContent = 'Frame: ' + (this._current_frame + 1) + '/' + this.num_frames;
     }
+
+
 }
 
 /*
@@ -156,9 +177,19 @@ function propagate() {
         body: JSON.stringify({
             frame_num: slideshow.current_frame
         })
+    }).then(response => {
+        if (!response.ok) {
+            console.error('Failed to get mask.');
+        }
+        return response.blob();
+    }).then(blob => {
+        // Create a URL for the blob
+        let imageUrl = URL.createObjectURL(blob);
+
+        // Display processed image
+        mask.src = imageUrl;
     }).catch(error => {
         console.error('Error saving image:', error);
     });
-    slideshow.update_slideshow()
 }
 

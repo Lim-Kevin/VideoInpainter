@@ -1,8 +1,4 @@
-from io import BytesIO
-
 import cv2
-import numpy as np
-from PIL import Image
 
 from lib.MiVOS_STCN.interact.interaction import ScribbleInteraction
 
@@ -22,15 +18,3 @@ class MyScribbleInteraction(ScribbleInteraction):
 
         for i in range(len(selected) - 1):
             cv2.line(self.drawn_map, selected[i], selected[i + 1], k, thickness=self.size)
-
-
-def comp_mask(mask):
-    """
-    Makes an image where the mask is colored and slightly transparent
-    :param mask: a 1-channel image with 1 where the mask is
-    :return: a 4-channel image
-    """
-    output = np.zeros((*mask.shape, 4), dtype=np.uint8)
-    output[mask == 1, :3] = [255, 0, 0]
-    output[mask == 1, 3] = 128
-    return output

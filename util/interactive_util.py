@@ -2,6 +2,7 @@ import os
 from io import BytesIO
 
 import cv2
+import numpy as np
 from PIL import Image
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
@@ -67,19 +68,6 @@ def get_video_info(video_path):
     return num_frames, fps
 
 
-def resize_image_to_frame(image, frame_path):
-    """
-    Takes in an image and makes it the same size as the video
-    :param image: Image to be resized
-    :param frame_path: Path to the frame to be resized to
-    """
-
-    frame = Image.open(frame_path)
-    width, height = frame.size
-    resized_image = image.resize((width, height))
-    return resized_image
-
-
 def array_to_bytesio(image_array):
     # Convert the NumPy array to an image
     image = Image.fromarray(image_array)
@@ -94,9 +82,13 @@ def array_to_bytesio(image_array):
     return img_io
 
 
-def list_of_arrays_to_bytesio(image_list):
-    bytesio_list = []
-    for image_array in image_list:
-        image_io = array_to_bytesio(image_array)
-        bytesio_list.append(image_io)
-    return bytesio_list
+def compose_mask(mask):
+    """
+    Makes an image where the mask is colored and slightly transparent
+    :param mask: a 1-channel image with 1 where the mask is
+    :return: the composed mask as an array
+    """
+    output = np.zeros((*mask.shape, 4), dtype=np.uint8)
+    output[mask == 1, :3] = [255, 0, 0]
+    output[mask == 1, 3] = 128
+    return output

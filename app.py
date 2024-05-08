@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import uuid
@@ -8,7 +9,7 @@ from flask import Flask, flash, request, redirect, send_from_directory, render_t
 from werkzeug.utils import secure_filename
 
 from util.MiVOS_util import MiVOS_Manager
-from util.interactive_util import array_to_bytesio, get_video_info, save_frames
+from util.interactive_util import get_video_info, save_frames, array_to_bytesio, compose_mask
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -26,6 +27,7 @@ app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=Tru
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 manager_list = []
 
+
 # TODO: Use flashes
 # TODO: Add progressbars in UI
 def allowed_file(filename):
@@ -40,6 +42,14 @@ def clear_folder(folder_path):
             os.unlink(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
+
+
+def generate_etag(file_path):
+    # Generate ETag based on the content of the file
+    with open(file_path, 'rb') as f:
+        file_content = f.read()
+        etag = hashlib.md5(file_content).hexdigest()
+        return etag
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -58,9 +68,11 @@ def upload_file():
             session['video_uploaded'] = True
             session['video_name'] = secure_filename(file.filename)
 
+            # Set up the manager
             folder_name = str(uuid.uuid4())
             session['root_folder'] = os.path.join(app.config['UPLOAD_FOLDER'], folder_name)
             os.makedirs(session['root_folder'])
+
             # Save video
             file_path = os.path.join(session['root_folder'], session['video_name'])
             file.save(file_path)
@@ -69,9 +81,16 @@ def upload_file():
             frame_folder = os.path.join(session['root_folder'], 'frames')
             save_frames(file_path, frame_folder)
             session['num_frames'], session['fps'] = get_video_info(file_path)
-            session['frame_links'] = [os.path.join(frame_folder, '{:05}.png'.format(i)) for i in
-                                      range(session['num_frames'])]
+
+            # Create mask folder and create an empty mask image
+            mask_folder = os.path.join(session['root_folder'], 'masks')
+            os.makedirs(mask_folder, exist_ok=True)
+            temp_img = Image.open(os.path.join(frame_folder, '00000.png'))
+            empty_img = Image.new("RGBA", temp_img.size, (0, 0, 0, 0))
+            empty_img.save(os.path.join(session['root_folder'], 'empty.png'))
+
             manager_list.append(MiVOS_Manager(file_path))
+
             return redirect(url_for('mask_page'))
         else:
             flash('File extension not allowed')
@@ -104,9 +123,20 @@ def get_frame(num):
 
 @app.route('/mask/<num>')
 def get_mask(num):
-    mask = manager_list[0].show_mask(int(num))
-    mask_io = array_to_bytesio(mask)
-    return send_file(mask_io, mimetype='image/png')
+    mask_path = os.path.join(session['root_folder'], 'masks', '{:05}.png'.format(int(num)))
+    if os.path.exists(mask_path):
+        image_path = mask_path
+    else:
+        image_path = os.path.join(session['root_folder'], 'empty.png')
+
+    # Generate ETag for the image file
+    etag = generate_etag(image_path)
+
+    # Check if client's ETag matches the current ETag
+    match = request.headers.get('If-None-Match').strip('"')
+    if match is not None and match == etag:
+        return 'Not modified', 304
+    return send_file(image_path, etag=etag)
 
 
 @app.route('/upload_canvas', methods=['POST'])
@@ -115,6 +145,13 @@ def s2m():
     drawing_points = [tuple(p) for p in data['points']]
     mask = manager_list[0].on_drawn(drawing_points, data['frame_num'], int(data['k']))
 
+    mask_folder = os.path.join(session['root_folder'], 'masks')
+    mask = compose_mask(mask)
+
+    img = Image.fromarray(mask)
+    img.save(os.path.join(mask_folder, '{:05d}.png'.format(data['frame_num'])))
+
+    # Send current mask for instant feedback
     mask_io = array_to_bytesio(mask)
     return send_file(mask_io, mimetype='image/png')
 
@@ -128,11 +165,16 @@ def propagate():
     os.makedirs(mask_folder, exist_ok=True)
 
     for i in range(len(mask_list)):
-        img_array = mask_list[i]
-        img_array[img_array == 1] = 255
-        img = Image.fromarray(img_array)
+        img = compose_mask(mask_list[i])
+        img = Image.fromarray(img)
         img.save(os.path.join(mask_folder, '{:05d}.png'.format(i)))
-    return 'Propagated', 200
+
+    mask = mask_list[data['frame_num']]
+    mask = compose_mask(mask)
+
+    # Send current mask for instant feedback
+    mask_io = array_to_bytesio(mask)
+    return send_file(mask_io, mimetype='image/png')
 
 
 @app.route('/reset_interaction', methods=['POST'])
