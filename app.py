@@ -9,7 +9,7 @@ from flask import Flask, flash, request, redirect, send_from_directory, render_t
 from werkzeug.utils import secure_filename
 
 from util.MiVOS_util import MiVOS_Manager
-from util.interactive_util import get_video_info, save_frames, array_to_bytesio, compose_mask
+from util.interactive_util import get_video_info, save_frames, array_to_bytesio, compose_mask, convert_to_mp4
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -66,7 +66,7 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             session['video_uploaded'] = True
-            session['video_name'] = secure_filename(file.filename)
+            video_name = secure_filename(file.filename)
 
             # Set up the manager
             folder_name = str(uuid.uuid4())
@@ -74,8 +74,11 @@ def upload_file():
             os.makedirs(session['root_folder'])
 
             # Save video
-            file_path = os.path.join(session['root_folder'], session['video_name'])
+            file_path = os.path.join(session['root_folder'], video_name)
             file.save(file_path)
+
+            mp4_video_name = convert_to_mp4(session['root_folder'], video_name)
+            file_path = os.path.join(session['root_folder'], mp4_video_name)
 
             # Save frames
             frame_folder = os.path.join(session['root_folder'], 'frames')

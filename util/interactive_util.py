@@ -9,7 +9,7 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 
 def convert_to_mp4(folder_path, filename):
     """
-    Converts a saved video file to mp4
+    Converts a saved video file to mp4 and deletes the original file
 
     :param folder_path: Path from root to the folder where the video is saved
     :param filename: Name of the video file
