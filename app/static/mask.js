@@ -8,6 +8,7 @@ class MaskSlideshow extends Slideshow {
     }
 
     update_slideshow() {
+        console.log('updated')
         // Set frame
         this._slides.src = '/frame/' + this._current_frame
 
@@ -30,17 +31,9 @@ class MaskSlideshow extends Slideshow {
             console.error('Error saving image:', error);
         });
 
-        // Clear canvas
-        try {
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-        } catch (e) {
-            console.error(e)
-        }
-
+        clear_canvas();
         this.value.textContent = 'Frame: ' + (this._current_frame + 1) + '/' + this.num_frames;
     }
-
-
 }
 
 /*
@@ -126,6 +119,33 @@ function finishDrawing(e) {
     upload_drawing();
 }
 
+function clear_canvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function reset_scribble() {
+    fetch('/reset', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (!response.ok) {
+            console.error('Failed to get mask.');
+        }
+        return response.blob();
+    }).then(blob => {
+        // Create a URL for the blob
+        let imageUrl = URL.createObjectURL(blob);
+
+        // Display processed image
+        mask.src = imageUrl;
+    }).catch(error => {
+        console.error('Error saving image:', error);
+    });
+    clear_canvas()
+}
+
 // Sets the canvas to the same size as a given element
 function resize_canvas(element) {
     let width = element.offsetWidth;
@@ -191,5 +211,33 @@ function propagate() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
+}
+
+
+function undo() {
+    // Send the image data to the server
+    fetch('/undo', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            frame_num: slideshow.current_frame
+        })
+    }).then(response => {
+        if (!response.ok) {
+            console.error('Failed to get mask.');
+        }
+        return response.blob();
+    }).then(blob => {
+        // Create a URL for the blob
+        let imageUrl = URL.createObjectURL(blob);
+
+        // Display processed image
+        mask.src = imageUrl;
+    }).catch(error => {
+        console.error('Error saving image:', error);
+    });
+    clear_canvas();
 }
 

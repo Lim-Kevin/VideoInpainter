@@ -169,8 +169,6 @@ class MiVOS_Manager:
             else:
                 self.reset_this_interaction()
                 self.interacted_mask = self.processor.prob[:, self.cursur].clone()
-
-
         else:
             if self.interaction.can_undo():
                 self.interacted_mask = self.interaction.undo()
@@ -188,7 +186,7 @@ class MiVOS_Manager:
             self.vis_map, self.vis_alpha = self.vis_hist.pop()
 
         # Commit changes
-        self.update_interacted_mask()
+        return self.update_interacted_mask()
 
     def on_reset(self):
         # DO not edit prob -- we still need the mask diff

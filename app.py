@@ -136,8 +136,8 @@ def get_mask(num):
     etag = generate_etag(image_path)
 
     # Check if client's ETag matches the current ETag
-    match = request.headers.get('If-None-Match').strip('"')
-    if match is not None and match == etag:
+    match = request.headers.get('If-None-Match')
+    if match is not None and match.strip('"') == etag:
         return 'Not modified', 304
     return send_file(image_path, etag=etag)
 
@@ -184,6 +184,37 @@ def propagate():
 def reset_interaction():
     manager_list[0].reset_this_interaction()
     return 'Reset interaction', 200
+
+
+@app.route('/reset', methods=['POST'])
+def reset():
+    manager_list[0].on_reset()
+    image_path = os.path.join(session['root_folder'], 'empty.png')
+
+    # Generate ETag for the image file
+    etag = generate_etag(image_path)
+
+    # Check if client's ETag matches the current ETag
+    match = request.headers.get('If-None-Match')
+    if match is not None and match.strip('"') == etag:
+        return 'Not modified', 304
+    return send_file(image_path, etag=etag)
+
+
+@app.route('/undo', methods=['POST'])
+def undo():
+    data = request.get_json()
+    mask = manager_list[0].on_undo()
+
+    mask_folder = os.path.join(session['root_folder'], 'masks')
+    mask = compose_mask(mask)
+
+    img = Image.fromarray(mask)
+    img.save(os.path.join(mask_folder, '{:05d}.png'.format(data['frame_num'])))
+
+    # Send current mask for instant feedback
+    mask_io = array_to_bytesio(mask)
+    return send_file(mask_io, mimetype='image/png')
 
 
 if __name__ == '__main__':
