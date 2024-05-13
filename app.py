@@ -63,7 +63,6 @@ def check_expired_sessions():
         current_time = time.time()
         with app.app_context():
             for session_id, created_time in list(session_expiration_times.items()):
-                print(current_time - created_time)
                 if current_time - created_time > SESSION_EXPIRATION_TIME:
                     # Session has expired, delete associated folder
                     folder_path = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
@@ -72,9 +71,8 @@ def check_expired_sessions():
                     # Remove expired session from the dictionary
                     del session_expiration_times[session_id]
                     del manager_list[session_id]
-                    print('deleted')
+                    print('Deleted ' + session_id)
         time.sleep(SESSION_CHECK_INTERVAL)
-        print('loop')
 
 
 # Dictionary to store session creation times
