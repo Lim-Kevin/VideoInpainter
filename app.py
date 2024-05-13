@@ -1,6 +1,8 @@
 import hashlib
 import os
 import shutil
+import threading
+import time
 import uuid
 
 from PIL import Image
@@ -25,7 +27,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
-manager_list = []
+manager_list = {}
+
+SESSION_EXPIRATION_TIME = 3600  # Session expiration time in seconds
+SESSION_CHECK_INTERVAL = 1800  # Check interval for expired sessions in seconds
 
 
 # TODO: Use flashes
@@ -52,6 +57,35 @@ def generate_etag(file_path):
         return etag
 
 
+# Check and delete expired sessions
+def check_expired_sessions():
+    while True:
+        current_time = time.time()
+        with app.app_context():
+            for session_id, created_time in list(session_expiration_times.items()):
+                print(current_time - created_time)
+                if current_time - created_time > SESSION_EXPIRATION_TIME:
+                    # Session has expired, delete associated folder
+                    folder_path = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
+                    if os.path.exists(folder_path):
+                        shutil.rmtree(folder_path)
+                    # Remove expired session from the dictionary
+                    del session_expiration_times[session_id]
+                    del manager_list[session_id]
+                    print('deleted')
+        time.sleep(SESSION_CHECK_INTERVAL)
+        print('loop')
+
+
+# Dictionary to store session creation times
+session_expiration_times = {}
+
+# Start the background thread for checking expired sessions
+expired_session_checker = threading.Thread(target=check_expired_sessions)
+expired_session_checker.daemon = True
+expired_session_checker.start()
+
+
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
@@ -69,8 +103,9 @@ def upload_file():
             video_name = secure_filename(file.filename)
 
             # Set up the manager
-            folder_name = str(uuid.uuid4())
-            session['root_folder'] = os.path.join(app.config['UPLOAD_FOLDER'], folder_name)
+            session['session_id'] = str(uuid.uuid4())
+            session_expiration_times[session['session_id']] = time.time()
+            session['root_folder'] = os.path.join(app.config['UPLOAD_FOLDER'], session['session_id'])
             os.makedirs(session['root_folder'])
 
             # Save video
@@ -92,7 +127,7 @@ def upload_file():
             empty_img = Image.new("RGBA", temp_img.size, (0, 0, 0, 0))
             empty_img.save(os.path.join(session['root_folder'], 'empty.png'))
 
-            manager_list.append(MiVOS_Manager(file_path))
+            manager_list[session['session_id']] = MiVOS_Manager(file_path)
 
             return redirect(url_for('mask_page'))
         else:
@@ -146,7 +181,7 @@ def get_mask(num):
 def s2m():
     data = request.get_json()
     drawing_points = [tuple(p) for p in data['points']]
-    mask = manager_list[0].on_drawn(drawing_points, data['frame_num'], int(data['k']))
+    mask = manager_list[session['session_id']].on_drawn(drawing_points, data['frame_num'], int(data['k']))
 
     mask_folder = os.path.join(session['root_folder'], 'masks')
     mask = compose_mask(mask)
@@ -162,7 +197,7 @@ def s2m():
 @app.route('/propagate', methods=['POST'])
 def propagate():
     data = request.get_json()
-    mask_list = manager_list[0].on_run(data['frame_num'])
+    mask_list = manager_list[session['session_id']].on_run(data['frame_num'])
 
     mask_folder = os.path.join(session['root_folder'], 'masks')
     os.makedirs(mask_folder, exist_ok=True)
@@ -182,13 +217,13 @@ def propagate():
 
 @app.route('/reset_interaction', methods=['POST'])
 def reset_interaction():
-    manager_list[0].reset_this_interaction()
+    manager_list[session['session_id']].reset_this_interaction()
     return 'Reset interaction', 200
 
 
 @app.route('/reset', methods=['POST'])
 def reset():
-    manager_list[0].on_reset()
+    manager_list[session['session_id']].on_reset()
     image_path = os.path.join(session['root_folder'], 'empty.png')
 
     # Generate ETag for the image file
@@ -204,7 +239,7 @@ def reset():
 @app.route('/undo', methods=['POST'])
 def undo():
     data = request.get_json()
-    mask = manager_list[0].on_undo()
+    mask = manager_list[session['session_id']].on_undo()
 
     mask_folder = os.path.join(session['root_folder'], 'masks')
     mask = compose_mask(mask)

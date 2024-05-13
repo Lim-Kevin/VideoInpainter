@@ -25,6 +25,7 @@ class Slideshow {
             datalist.appendChild(option);
         }
 
+        // Called when slider is being moved
         this.input.addEventListener("change", (event) => {
             this._current_frame = parseInt(event.target.value);
             this.update_slideshow();

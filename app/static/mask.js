@@ -8,7 +8,6 @@ class MaskSlideshow extends Slideshow {
     }
 
     update_slideshow() {
-        console.log('updated')
         // Set frame
         this._slides.src = '/frame/' + this._current_frame
 
@@ -33,12 +32,15 @@ class MaskSlideshow extends Slideshow {
 
         clear_canvas();
         this.value.textContent = 'Frame: ' + (this._current_frame + 1) + '/' + this.num_frames;
+        undo_button.disabled = true;
     }
 }
 
 /*
     Setting up the canvas
  */
+let undo_button = document.getElementById('undo_button')
+
 let canvas = document.getElementById('cv1'),
     ctx = canvas.getContext('2d'),
     mask = document.getElementById('mask');
@@ -185,6 +187,7 @@ function upload_drawing() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
+    undo_button.disabled = false;
 }
 
 function propagate() {
