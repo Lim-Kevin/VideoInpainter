@@ -10,6 +10,7 @@ from flask import Flask, flash, request, redirect, send_from_directory, render_t
     session
 from werkzeug.utils import secure_filename
 
+from lib.ProPainter.inference_propainter import inpaint
 from util.MiVOS_util import MiVOS_Manager
 from util.interactive_util import get_video_info, save_frames, array_to_bytesio, compose_mask, convert_to_mp4
 
@@ -38,15 +39,6 @@ SESSION_CHECK_INTERVAL = 1800  # Check interval for expired sessions in seconds
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def clear_folder(folder_path):
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        if os.path.isfile(file_path):
-            os.unlink(file_path)
-        elif os.path.isdir(file_path):
-            shutil.rmtree(file_path)
 
 
 def generate_etag(file_path):
@@ -100,7 +92,7 @@ def upload_file():
             session['video_uploaded'] = True
             video_name = secure_filename(file.filename)
 
-            # Set up the manager
+            # Set up session
             session['session_id'] = str(uuid.uuid4())
             session_expiration_times[session['session_id']] = time.time()
             session['root_folder'] = os.path.join(app.config['UPLOAD_FOLDER'], session['session_id'])
@@ -125,7 +117,7 @@ def upload_file():
             empty_img = Image.new("RGBA", temp_img.size, (0, 0, 0, 0))
             empty_img.save(os.path.join(session['root_folder'], 'empty.png'))
 
-            manager_list[session['session_id']] = MiVOS_Manager(file_path)
+            manager_list[session['session_id']] = MiVOS_Manager(frame_folder)
 
             return redirect(url_for('mask_page'))
         else:
@@ -175,6 +167,43 @@ def get_mask(num):
     return send_file(image_path, etag=etag)
 
 
+@app.route('/reset_interaction', methods=['POST'])
+def reset_interaction():
+    manager_list[session['session_id']].reset_this_interaction()
+    return 'Reset interaction', 200
+
+
+@app.route('/reset', methods=['POST'])
+def reset():
+    manager_list[session['session_id']].on_reset()
+    image_path = os.path.join(session['root_folder'], 'empty.png')
+
+    # Generate ETag for the image file
+    etag = generate_etag(image_path)
+
+    # Check if client's ETag matches the current ETag
+    match = request.headers.get('If-None-Match')
+    if match is not None and match.strip('"') == etag:
+        return 'Not modified', 304
+    return send_file(image_path, etag=etag)
+
+
+@app.route('/undo', methods=['POST'])
+def undo():
+    data = request.get_json()
+    mask = manager_list[session['session_id']].on_undo()
+
+    mask_folder = os.path.join(session['root_folder'], 'masks')
+    mask = compose_mask(mask)
+
+    img = Image.fromarray(mask)
+    img.save(os.path.join(mask_folder, '{:05d}.png'.format(data['frame_num'])))
+
+    # Send current mask for instant feedback
+    mask_io = array_to_bytesio(mask)
+    return send_file(mask_io, mimetype='image/png')
+
+
 @app.route('/upload_canvas', methods=['POST'])
 def s2m():
     data = request.get_json()
@@ -213,41 +242,29 @@ def propagate():
     return send_file(mask_io, mimetype='image/png')
 
 
-@app.route('/reset_interaction', methods=['POST'])
-def reset_interaction():
-    manager_list[session['session_id']].reset_this_interaction()
-    return 'Reset interaction', 200
+@app.route('/inpaint', methods=['POST'])
+def inpaint_video():
+    inpaint(os.path.join(session['root_folder'], 'frames'),
+            os.path.join(session['root_folder'], 'masks'),
+            os.path.join(session['root_folder'], 'frames'),
+            session.get('fps'))
+
+    session['video_inpainted'] = True
+    return redirect(url_for('result_page'))
 
 
-@app.route('/reset', methods=['POST'])
-def reset():
-    manager_list[session['session_id']].on_reset()
-    image_path = os.path.join(session['root_folder'], 'empty.png')
-
-    # Generate ETag for the image file
-    etag = generate_etag(image_path)
-
-    # Check if client's ETag matches the current ETag
-    match = request.headers.get('If-None-Match')
-    if match is not None and match.strip('"') == etag:
-        return 'Not modified', 304
-    return send_file(image_path, etag=etag)
-
-
-@app.route('/undo', methods=['POST'])
-def undo():
-    data = request.get_json()
-    mask = manager_list[session['session_id']].on_undo()
-
+@app.route('/again', methods=['POST'])
+def inpaint_again():
+    session['video_inpainted'] = False
     mask_folder = os.path.join(session['root_folder'], 'masks')
-    mask = compose_mask(mask)
-
-    img = Image.fromarray(mask)
-    img.save(os.path.join(mask_folder, '{:05d}.png'.format(data['frame_num'])))
-
-    # Send current mask for instant feedback
-    mask_io = array_to_bytesio(mask)
-    return send_file(mask_io, mimetype='image/png')
+    frame_folder = os.path.join(session['root_folder'], 'frames')
+    # Delete masks
+    if os.path.exists(mask_folder):
+        shutil.rmtree(mask_folder)
+        os.makedirs(mask_folder, exist_ok=True)
+    # initialise frame
+    manager_list[session['session_id']] = MiVOS_Manager(frame_folder)
+    return redirect(url_for('mask_page'))
 
 
 if __name__ == '__main__':

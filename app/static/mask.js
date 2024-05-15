@@ -244,3 +244,15 @@ function undo() {
     clear_canvas();
 }
 
+function inpaint() {
+    fetch('inpaint', {
+        method: 'POST'
+    }).then((response)=>{
+        if(response.redirected){
+            window.location.href = response.url;
+        }
+    }).catch(error => {
+        console.error('Error inpainting:', error);
+    });
+}
+

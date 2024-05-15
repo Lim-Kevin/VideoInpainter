@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from lib.MiVOS_STCN.inference_core import InferenceCore
-from lib.MiVOS_STCN.interact.interactive_utils import load_video, images_to_torch
+from lib.MiVOS_STCN.interact.interactive_utils import images_to_torch, load_images
 from lib.MiVOS_STCN.interact.s2m_controller import S2MController
 from lib.MiVOS_STCN.model.fusion_net import FusionNet
 from lib.MiVOS_STCN.model.propagation.prop_net import PropagationNetwork
@@ -13,7 +13,7 @@ from util.scribble_util import MyScribbleInteraction
 
 
 class MiVOS_Manager:
-    def __init__(self, video_path, resolution=480):
+    def __init__(self, image_folder, resolution=480):
         # Set up models
         prop_saved = torch.load('saves/stcn.pth')
         prop_model = PropagationNetwork().cuda().eval()
@@ -29,7 +29,8 @@ class MiVOS_Manager:
 
         # Loads the images/masks
         # Set resolution=-1 to use original size
-        self.images = load_video(video_path, resolution)
+        # TODO: Change to load_images
+        self.images = load_images(image_folder, resolution)
         self.num_frames, self.height, self.width = self.images.shape[:3]
         self.num_objects = 1
 

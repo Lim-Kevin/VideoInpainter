@@ -16,14 +16,14 @@
         <datalist id="markers"></datalist>
     </div>
     <div id="controls">
-        <button id="play_button" onclick="play_or_pause()" type="button">Play/Pause</button>
-        <button id="save_button" onclick="clear_canvas()">Save video</button>
+        <button id="play_button">Play/Pause</button>
+        <button id="save_button">Save video</button>
         <button id="again_button" onclick="again()">Inpaint again</button>
     </div>
 </div>
 <p id="frames_display">Frame: 1/{{num_frames}}</p>
 
-<script src="{{url_for('static', filename='slideshow.js')}}" , fps="{{fps}}" , num_frames="{{num_frames}}"></script>
-<script src="{{url_for('static', filename='result.js')}}"></script>
+<script src="{{url_for('static', filename='slideshow.js')}}"></script>
+<script src="{{url_for('static', filename='result.js')}}", fps="{{fps}}" , num_frames="{{num_frames}}"></script>
 </body>
 </html>

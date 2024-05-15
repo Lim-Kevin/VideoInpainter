@@ -13,7 +13,6 @@
         <img id="slideshow"/>
         <img class="overlay" id="mask" />
     </div>
-    <!-- TODO: update button names -->
     <div id="seekbar">
         <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
         <datalist id="markers"></datalist>
@@ -24,6 +23,7 @@
         <button id="change_button">Change +/-</button>
         <button id="undo_button" onclick="undo()">Undo</button>
         <button id="propagate_button" onclick="propagate()">Propagate</button>
+        <button id="inpaint_button" onclick="inpaint()">Inpaint</button>
     </div>
 </div>
 <p id="frames_display">Frame: 1/{{num_frames}}</p>
