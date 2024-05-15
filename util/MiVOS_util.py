@@ -1,9 +1,7 @@
-import os
 from collections import deque
 
 import numpy as np
 import torch
-from PIL.Image import Image
 
 from lib.MiVOS_STCN.inference_core import InferenceCore
 from lib.MiVOS_STCN.interact.interactive_utils import load_video, images_to_torch
@@ -17,7 +15,6 @@ from util.scribble_util import MyScribbleInteraction
 class MiVOS_Manager:
     def __init__(self, video_path, resolution=480):
         # Set up models
-        # Load our checkpoint
         prop_saved = torch.load('saves/stcn.pth')
         prop_model = PropagationNetwork().cuda().eval()
         prop_model.load_state_dict(prop_saved)
@@ -26,7 +23,6 @@ class MiVOS_Manager:
         fuse_model = FusionNet().cuda().eval()
         fuse_model.load_state_dict(fusion_saved)
 
-        # Loads the S2M model
         s2m_saved = torch.load('saves/s2m.pth')
         s2m_model = S2M().cuda().eval()
         s2m_model.load_state_dict(s2m_saved)
@@ -60,21 +56,7 @@ class MiVOS_Manager:
         self.this_frame_interactions = []
         self.interaction = None
         self.reset_this_interaction()
-        # self.pressed = False
-        # self.right_click = False
         self.interacted_mask = None
-
-    def save(self):
-        out_folder = 'out'
-        mask_dir = os.path.join(out_folder, 'mask')
-
-        os.makedirs(mask_dir, exist_ok=True)
-
-        for i in range(self.num_frames):
-            # Save mask
-            mask = Image.fromarray(self.current_mask[i]).convert('P')
-            # mask.putpalette(palette)
-            mask.save(os.path.join(mask_dir, '{:05d}.png'.format(i)))
 
     def clear_visualization(self):
         self.vis_map.fill(0)
@@ -87,38 +69,26 @@ class MiVOS_Manager:
         self.clear_visualization()
         self.interaction = None
         self.this_frame_interactions = []
-        # self.undo_button.setDisabled(True)
 
     def on_run(self, frame_num):
-
         """
-        Propagation
+        Propagate the masks
         """
         self.cursur = frame_num
 
         if self.interacted_mask is None:
             print('Cannot propagate! No interacted mask!')
             return
-        # self.interacted_mask = torch.softmax(self.interacted_mask*1000, dim=0)
 
-        # A list of propagated masks
-
+        # Create a list of propagated masks
         with torch.cuda.amp.autocast(enabled=True) and torch.set_grad_enabled(False):
             self.current_mask = self.processor.interact(self.interacted_mask, self.cursur)
 
         self.interacted_mask = None
-        # clear scribble and reset
         self.reset_this_interaction()
-        # return self.show_mask(self.cursur)
 
         print('Propagation finished')
         return self.current_mask
-
-        # self.progress.setFormat('Idle')
-        # self.progress.setValue(0)
-
-        # TODO: Save mask frames after propagating
-        # self.user_timer.start()
 
     def on_drawn(self, drawing_points, frame_num, k):
         """
@@ -129,9 +99,6 @@ class MiVOS_Manager:
         :return: Predicted mask of the scribbles
         """
         self.cursur = frame_num
-
-        # on_press()
-        # self.right_click = (event.button() != 1)
 
         # Push last vis map into history
         self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
@@ -144,11 +111,7 @@ class MiVOS_Manager:
             self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller,
                                                      self.num_objects)
 
-        # on_motion()
         self.interaction.push_drawing(drawing_points, k)
-
-        # on_release()
-        print('Interaction at frame %d.' % self.cursur)
 
         interaction = self.interaction
         interaction.end_path()
@@ -157,9 +120,6 @@ class MiVOS_Manager:
             self.interacted_mask = interaction.predict()
 
         return self.update_interacted_mask()
-
-        # self.pressed = self.right_click = False
-        # self.undo_button.setDisabled(False)
 
     def on_undo(self):
         if self.interaction is None:
@@ -190,16 +150,13 @@ class MiVOS_Manager:
 
     def on_reset(self):
         # DO not edit prob -- we still need the mask diff
-
         self.processor.masks[self.cursur].zero_()
         self.processor.np_masks[self.cursur].fill(0)
         self.current_mask[self.cursur].fill(0)
         self.reset_this_interaction()
-        # self.show_mask(self.cursur)
+        # return self.current_mask[self.cursur]
 
     def on_press(self):
-        # self.right_click = (event.button() != 1)
-
         # Push last vis map into history
         self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
 
@@ -210,10 +167,6 @@ class MiVOS_Manager:
         if self.interaction is None:
             self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller,
                                                      self.num_objects)
-
-        # Just motion it as the first step
-        # Show frame and mask
-        # self.on_motion(event)
 
     def update_interacted_mask(self):
         """
@@ -239,4 +192,3 @@ class MiVOS_Manager:
             self.interactions['interact'][self.cursur].append(self.interaction)
             self.this_frame_interactions.append(self.interaction)
             self.interaction = None
-            # self.undo_button.setDisabled(False)

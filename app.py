@@ -187,7 +187,7 @@ def s2m():
     img = Image.fromarray(mask)
     img.save(os.path.join(mask_folder, '{:05d}.png'.format(data['frame_num'])))
 
-    # Send current mask for instant feedback
+    # Return current mask for instant feedback
     mask_io = array_to_bytesio(mask)
     return send_file(mask_io, mimetype='image/png')
 
@@ -208,7 +208,7 @@ def propagate():
     mask = mask_list[data['frame_num']]
     mask = compose_mask(mask)
 
-    # Send current mask for instant feedback
+    # Return current mask for instant feedback
     mask_io = array_to_bytesio(mask)
     return send_file(mask_io, mimetype='image/png')
 
