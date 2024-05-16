@@ -171,7 +171,9 @@ function upload_drawing() {
         body: JSON.stringify({
             points: current_drawing_points,
             frame_num: slideshow.current_frame,
-            k: is_pos_scribbles
+            k: is_pos_scribbles,
+            height: canvas.height,
+            width: canvas.width
         })
     }).then(response => {
         if (!response.ok) {
@@ -214,6 +216,7 @@ function propagate() {
     }).catch(error => {
         console.error('Error saving image:', error);
     });
+    undo_button.disabled = true;
 }
 
 

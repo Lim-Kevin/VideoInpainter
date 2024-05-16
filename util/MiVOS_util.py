@@ -29,7 +29,6 @@ class MiVOS_Manager:
 
         # Loads the images/masks
         # Set resolution=-1 to use original size
-        # TODO: Change to load_images
         self.images = load_images(image_folder, resolution)
         self.num_frames, self.height, self.width = self.images.shape[:3]
         self.num_objects = 1
@@ -107,7 +106,6 @@ class MiVOS_Manager:
         prev_hard_mask = self.processor.masks[self.cursur]
         image = self.processor.images[:, self.cursur]
         h, w = self.height, self.width
-
         if self.interaction is None:
             self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller,
                                                      self.num_objects)
@@ -157,18 +155,6 @@ class MiVOS_Manager:
         self.reset_this_interaction()
         # return self.current_mask[self.cursur]
 
-    def on_press(self):
-        # Push last vis map into history
-        self.vis_hist.append((self.vis_map.copy(), self.vis_alpha.copy()))
-
-        prev_hard_mask = self.processor.masks[self.cursur]
-        image = self.processor.images[:, self.cursur]
-        h, w = self.height, self.width
-
-        if self.interaction is None:
-            self.interaction = MyScribbleInteraction(image, prev_hard_mask, (h, w), self.s2m_controller,
-                                                     self.num_objects)
-
     def update_interacted_mask(self):
         """
         Calculate the currently interacted mask
@@ -179,12 +165,6 @@ class MiVOS_Manager:
         self.current_mask[self.cursur] = self.processor.np_masks[self.cursur]
         return self.current_mask[self.cursur]
 
-    def get_mask(self, num):
-        return self.current_mask[num]
-
-    def get_masks(self):
-        return self.current_mask
-
     def complete_interaction(self):
         if self.interaction is not None:
             self.clear_visualization()
@@ -193,3 +173,6 @@ class MiVOS_Manager:
             self.interactions['interact'][self.cursur].append(self.interaction)
             self.this_frame_interactions.append(self.interaction)
             self.interaction = None
+
+    def get_size(self):
+        return self.height, self.width

@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 from lib.ProPainter.inference_propainter import inpaint
 from util.MiVOS_util import MiVOS_Manager
 from util.interactive_util import get_video_info, save_frames, array_to_bytesio, compose_mask, convert_to_mp4
+from util.scribble_util import scale_points
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
@@ -208,6 +209,12 @@ def undo():
 def s2m():
     data = request.get_json()
     drawing_points = [tuple(p) for p in data['points']]
+
+    # Scale drawing_points to image size
+    h1 = data['height']
+    w1 = data['width']
+    h2, w2 = manager_list[session['session_id']].get_size()
+    drawing_points = scale_points(drawing_points, h1, w1, h2, w2)
     mask = manager_list[session['session_id']].on_drawn(drawing_points, data['frame_num'], int(data['k']))
 
     mask_folder = os.path.join(session['root_folder'], 'masks')
