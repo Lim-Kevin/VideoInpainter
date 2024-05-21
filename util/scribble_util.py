@@ -1,8 +1,6 @@
 import cv2
 
 from lib.MiVOS_STCN.interact.interaction import ScribbleInteraction
-from PIL import Image
-import numpy as np
 
 
 class MyScribbleInteraction(ScribbleInteraction):
@@ -19,12 +17,8 @@ class MyScribbleInteraction(ScribbleInteraction):
         self.curr_path[k] = drawing_points
         selected = self.curr_path[k]
 
-        print(self.drawn_map.shape)
         for i in range(len(selected) - 1):
             cv2.line(self.drawn_map, selected[i], selected[i + 1], k, thickness=self.size)
-
-        # img = Image.fromarray(self.drawn_map)
-        # img.save('out.png')
 
 
 def scale_points(points, h1, w1, h2, w2):

@@ -176,17 +176,24 @@ def reset_interaction():
 
 @app.route('/reset', methods=['POST'])
 def reset():
+    data = request.get_json()
     manager_list[session['session_id']].on_reset()
-    image_path = os.path.join(session['root_folder'], 'empty.png')
+
+    # Delete mask file
+    mask_path = os.path.join(session['root_folder'], 'masks', '{:05}.png'.format(int(data['frame_num'])))
+    if os.path.exists(mask_path):
+        os.remove(mask_path)
+
+    empty_image = os.path.join(session['root_folder'], 'empty.png')
 
     # Generate ETag for the image file
-    etag = generate_etag(image_path)
+    etag = generate_etag(empty_image)
 
     # Check if client's ETag matches the current ETag
     match = request.headers.get('If-None-Match')
     if match is not None and match.strip('"') == etag:
         return 'Not modified', 304
-    return send_file(image_path, etag=etag)
+    return send_file(empty_image, etag=etag)
 
 
 @app.route('/undo', methods=['POST'])

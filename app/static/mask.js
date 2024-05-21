@@ -130,7 +130,10 @@ function reset_scribble() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+            frame_num: slideshow.current_frame
+        })
     }).then(response => {
         if (!response.ok) {
             console.error('Failed to get mask.');
