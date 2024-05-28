@@ -1,13 +1,14 @@
 import hashlib
 import os
 import shutil
-import threading
-import time
 import uuid
+from datetime import timedelta, datetime
 
+import cv2
 from PIL import Image
 from flask import Flask, flash, request, redirect, send_from_directory, render_template, send_file, url_for, \
     session
+from git.objects.util import utc
 from werkzeug.utils import secure_filename
 
 from lib.ProPainter.inference_propainter import inpaint
@@ -26,13 +27,10 @@ app.secret_key = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-app.add_url_rule('/app/uploads/<name>', endpoint='download_file', build_only=True)
-
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 manager_list = {}
 
-SESSION_EXPIRATION_TIME = 3600  # Session expiration time in seconds
-SESSION_CHECK_INTERVAL = 1800  # Check interval for expired sessions in seconds
+SESSION_EXPIRATION_TIME = timedelta(minutes=30)  # Set time the session should expire in
 
 
 # TODO: Use flashes
@@ -50,34 +48,30 @@ def generate_etag(file_path):
         return etag
 
 
-# Check and delete expired sessions
-def check_expired_sessions():
-    while True:
-        current_time = time.time()
-        with app.app_context():
-            for session_id, created_time in list(session_expiration_times.items()):
-                if current_time - created_time > SESSION_EXPIRATION_TIME:
-                    # Session has expired, delete associated folder
-                    folder_path = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
-                    if os.path.exists(folder_path):
-                        shutil.rmtree(folder_path)
-                    # Remove expired session from the dictionary
-                    del session_expiration_times[session_id]
-                    del manager_list[session_id]
-                    print('Deleted ' + session_id)
-        time.sleep(SESSION_CHECK_INTERVAL)
+@app.before_request
+def check_session_expired():
+    if 'session_id' in session and request.endpoint not in ('index', 'upload_file'):
+        if datetime.utcnow().replace(tzinfo=None) - session['creation_time'].replace(tzinfo=None) > SESSION_EXPIRATION_TIME:
+            # Session expired, delete the corresponding folder
+            shutil.rmtree(session['root_folder'])
+            return redirect(url_for('index'))
+        else:
+            # Renew session timeout
+            session['creation_time'] = datetime.utcnow()
 
 
-# Dictionary to store session creation times
-session_expiration_times = {}
-
-# Start the background thread for checking expired sessions
-expired_session_checker = threading.Thread(target=check_expired_sessions)
-expired_session_checker.daemon = True
-expired_session_checker.start()
+# Use this to trigger app.before_request
+@app.route('/check', methods=['POST'])
+def check():
+    return '', 200
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/upload_file', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
@@ -94,8 +88,9 @@ def upload_file():
             video_name = secure_filename(file.filename)
 
             # Set up session
+            session.permanent = True
             session['session_id'] = str(uuid.uuid4())
-            session_expiration_times[session['session_id']] = time.time()
+            session['creation_time'] = datetime.utcnow()
             session['root_folder'] = os.path.join(app.config['UPLOAD_FOLDER'], session['session_id'])
             os.makedirs(session['root_folder'])
 
@@ -123,12 +118,12 @@ def upload_file():
             return redirect(url_for('mask_page'))
         else:
             flash('File extension not allowed')
-    return render_template('index.html')
+    return redirect(url_for('index'))
 
 
 @app.route('/interactive')
 def mask_page():
-    if session.get('video_uploaded') and not session.get('video_inpainted'):
+    if session.get('video_uploaded'):
         return render_template('mask.html', num_frames=session.get('num_frames'), fps=session.get('fps'))
     return redirect(url_for('upload_file'))
 
@@ -210,6 +205,31 @@ def undo():
     # Send current mask for instant feedback
     mask_io = array_to_bytesio(mask)
     return send_file(mask_io, mimetype='image/png')
+
+
+@app.route('/save_video', methods=['POST'])
+def save_video():
+    frame_folder = os.path.join(session['root_folder'], 'frames')
+    frames = [f for f in os.listdir(frame_folder)]
+    frames.sort()
+
+    first_frame_path = os.path.join(frame_folder, frames[0])
+    frame = cv2.imread(first_frame_path)
+    height, width, layers = frame.shape
+
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    output_path = os.path.join(session['root_folder'], 'inpainted.mp4')
+    video = cv2.VideoWriter(output_path, fourcc, session['fps'], (width, height))
+
+    # Iterate over each frame and write it to the video
+    for f in frames:
+        frame_path = os.path.join(frame_folder, f)
+        frame = cv2.imread(frame_path)
+        video.write(frame)
+    video.release()
+    cv2.destroyAllWindows()
+
+    return send_file(output_path, as_attachment=True)
 
 
 @app.route('/upload_canvas', methods=['POST'])

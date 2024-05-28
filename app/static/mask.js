@@ -8,6 +8,13 @@ class MaskSlideshow extends Slideshow {
     }
 
     update_slideshow() {
+        fetch('/check', {
+            method: 'POST'
+        }).then(response => {
+            if(response.redirected){
+            window.location.href = response.url;
+            }
+        })
         // Set frame
         this._slides.src = '/frame/' + this._current_frame
 
@@ -135,6 +142,9 @@ function reset_scribble() {
             frame_num: slideshow.current_frame
         })
     }).then(response => {
+        if(response.redirected){
+            window.location.href = response.url;
+        }
         if (!response.ok) {
             console.error('Failed to get mask.');
         }
@@ -179,6 +189,10 @@ function upload_drawing() {
             width: canvas.width
         })
     }).then(response => {
+        if(response.redirected){
+            window.location.href = response.url;
+        }
+
         if (!response.ok) {
             console.error('Failed to get mask.');
         }
@@ -206,6 +220,9 @@ function propagate() {
             frame_num: slideshow.current_frame
         })
     }).then(response => {
+        if(response.redirected){
+            window.location.href = response.url;
+        }
         if (!response.ok) {
             console.error('Failed to get mask.');
         }
@@ -234,6 +251,9 @@ function undo() {
             frame_num: slideshow.current_frame
         })
     }).then(response => {
+        if(response.redirected){
+            window.location.href = response.url;
+        }
         if (!response.ok) {
             console.error('Failed to get mask.');
         }

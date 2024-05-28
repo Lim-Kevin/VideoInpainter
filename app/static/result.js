@@ -4,6 +4,13 @@ class ResultSlideshow extends Slideshow {
     }
 
     update_slideshow() {
+        fetch('/check', {
+            method: 'POST'
+        }).then(response => {
+            if(response.redirected){
+            window.location.href = response.url;
+            }
+        })
         // Set frame
         this._slides.src = '/frame/' + this._current_frame
         this.value.textContent = 'Frame: ' + (this._current_frame + 1) + '/' + this.num_frames;

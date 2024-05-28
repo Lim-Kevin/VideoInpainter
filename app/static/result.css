@@ -1,0 +1,9 @@
+#save_button_form {
+    flex: 1;
+    margin: 0 10px;
+}
+
+#save_button {
+    width: 100%;
+    margin: 0;
+}

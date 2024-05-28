@@ -26,7 +26,6 @@ def convert_to_mp4(folder_path, filename):
     video.write_videofile(output_filepath)
 
     os.remove(file_path)  # Delete original file
-    print(file_path)
     mp4_filename = filename.split('.')[0] + ".mp4"
     return mp4_filename
 
