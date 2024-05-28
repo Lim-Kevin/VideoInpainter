@@ -11,8 +11,8 @@ class MaskSlideshow extends Slideshow {
         fetch('/check', {
             method: 'POST'
         }).then(response => {
-            if(response.redirected){
-            window.location.href = response.url;
+            if (response.redirected) {
+                window.location.href = response.url;
             }
         })
         // Set frame
@@ -42,6 +42,12 @@ class MaskSlideshow extends Slideshow {
         undo_button.disabled = true;
     }
 }
+
+window.onbeforeunload = () => fetch('/delete_session').then(response => {
+    if (response.redirected) {
+        window.location.href = response.url;
+    }
+})
 
 /*
     Setting up the canvas
@@ -142,7 +148,7 @@ function reset_scribble() {
             frame_num: slideshow.current_frame
         })
     }).then(response => {
-        if(response.redirected){
+        if (response.redirected) {
             window.location.href = response.url;
         }
         if (!response.ok) {
@@ -189,7 +195,7 @@ function upload_drawing() {
             width: canvas.width
         })
     }).then(response => {
-        if(response.redirected){
+        if (response.redirected) {
             window.location.href = response.url;
         }
 
@@ -210,7 +216,7 @@ function upload_drawing() {
 }
 
 function propagate() {
-        // Send the image data to the server
+    // Send the image data to the server
     fetch('/propagate', {
         method: 'POST',
         headers: {
@@ -220,7 +226,7 @@ function propagate() {
             frame_num: slideshow.current_frame
         })
     }).then(response => {
-        if(response.redirected){
+        if (response.redirected) {
             window.location.href = response.url;
         }
         if (!response.ok) {
@@ -251,7 +257,7 @@ function undo() {
             frame_num: slideshow.current_frame
         })
     }).then(response => {
-        if(response.redirected){
+        if (response.redirected) {
             window.location.href = response.url;
         }
         if (!response.ok) {
@@ -273,8 +279,8 @@ function undo() {
 function inpaint() {
     fetch('inpaint', {
         method: 'POST'
-    }).then((response)=>{
-        if(response.redirected){
+    }).then((response) => {
+        if (response.redirected) {
             window.location.href = response.url;
         }
     }).catch(error => {

@@ -30,7 +30,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 manager_list = {}
 
-SESSION_EXPIRATION_TIME = timedelta(minutes=30)  # Set time the session should expire in
+SESSION_EXPIRATION_TIME = timedelta(seconds=5)  # Set time the session should expire in
 
 
 # TODO: Use flashes
@@ -51,9 +51,12 @@ def generate_etag(file_path):
 @app.before_request
 def check_session_expired():
     if 'session_id' in session and request.endpoint not in ('index', 'upload_file'):
-        if datetime.utcnow().replace(tzinfo=None) - session['creation_time'].replace(tzinfo=None) > SESSION_EXPIRATION_TIME:
+        if datetime.utcnow().replace(tzinfo=None) - session['creation_time'].replace(
+                tzinfo=None) > SESSION_EXPIRATION_TIME:
             # Session expired, delete the corresponding folder
-            shutil.rmtree(session['root_folder'])
+            if session['root_folder']:
+                shutil.rmtree(session['root_folder'])
+            session.clear()
             return redirect(url_for('index'))
         else:
             # Renew session timeout
@@ -64,6 +67,14 @@ def check_session_expired():
 @app.route('/check', methods=['POST'])
 def check():
     return '', 200
+
+
+@app.route('/delete_session')
+def delete_session():
+    if session['root_folder']:
+        shutil.rmtree(session['root_folder'])
+    session.clear()
+    return redirect(url_for('index'))
 
 
 @app.route('/')

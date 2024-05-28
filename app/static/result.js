@@ -22,6 +22,11 @@ let num_frames = document.currentScript.getAttribute('num_frames'),
 
 let slideshow = new ResultSlideshow(num_frames, fps);
 
+window.onbeforeunload = () => fetch('/delete_session').then(response => {
+    if (response.redirected) {
+        window.location.href = response.url;
+    }
+})
 
 function again() {
     fetch('again', {
