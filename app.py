@@ -1,6 +1,7 @@
 import hashlib
 import os
 import shutil
+import time
 import uuid
 from datetime import timedelta, datetime
 
@@ -30,7 +31,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
 manager_list = {}
 
-SESSION_EXPIRATION_TIME = timedelta(seconds=5)  # Set time the session should expire in
+SESSION_EXPIRATION_TIME = timedelta(minutes=30)  # Set time the session should expire in
 
 
 # TODO: Use flashes
@@ -71,9 +72,9 @@ def check():
 
 @app.route('/delete_session')
 def delete_session():
-    if session['root_folder']:
+    if session.get('root_folder'):
         shutil.rmtree(session['root_folder'])
-    session.clear()
+        session.clear()
     return redirect(url_for('index'))
 
 
@@ -268,6 +269,8 @@ def s2m():
 
 @app.route('/propagate', methods=['POST'])
 def propagate():
+    start_time = time.time()
+
     data = request.get_json()
     mask_list = manager_list[session['session_id']].on_run(data['frame_num'])
 
@@ -284,6 +287,9 @@ def propagate():
 
     # Return current mask for instant feedback
     mask_io = array_to_bytesio(mask)
+
+    end_time = time.time()
+    duration = end_time - start_time
     return send_file(mask_io, mimetype='image/png')
 
 

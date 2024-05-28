@@ -7,8 +7,9 @@ class ResultSlideshow extends Slideshow {
         fetch('/check', {
             method: 'POST'
         }).then(response => {
-            if(response.redirected){
-            window.location.href = response.url;
+            if (response.redirected) {
+                window.removeEventListener('beforeunload', handle_before_unload);
+                window.location.href = response.url;
             }
         })
         // Set frame
@@ -22,17 +23,22 @@ let num_frames = document.currentScript.getAttribute('num_frames'),
 
 let slideshow = new ResultSlideshow(num_frames, fps);
 
-window.onbeforeunload = () => fetch('/delete_session').then(response => {
-    if (response.redirected) {
-        window.location.href = response.url;
-    }
-})
+function handle_before_unload() {
+    fetch('/delete_session').then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
+    })
+}
+
+window.addEventListener('beforeunload', handle_before_unload)
 
 function again() {
     fetch('again', {
         method: 'POST'
-    }).then((response)=>{
-        if(response.redirected){
+    }).then((response) => {
+        if (response.redirected) {
+            window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
     }).catch(error => {

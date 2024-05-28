@@ -12,6 +12,7 @@ class MaskSlideshow extends Slideshow {
             method: 'POST'
         }).then(response => {
             if (response.redirected) {
+                window.removeEventListener('beforeunload', handle_before_unload);
                 window.location.href = response.url;
             }
         })
@@ -43,11 +44,15 @@ class MaskSlideshow extends Slideshow {
     }
 }
 
-window.onbeforeunload = () => fetch('/delete_session').then(response => {
-    if (response.redirected) {
-        window.location.href = response.url;
-    }
-})
+function handle_before_unload() {
+    fetch('/delete_session').then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
+    })
+}
+
+window.addEventListener('beforeunload', handle_before_unload)
 
 /*
     Setting up the canvas
@@ -149,6 +154,7 @@ function reset_scribble() {
         })
     }).then(response => {
         if (response.redirected) {
+            window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
         if (!response.ok) {
@@ -196,6 +202,7 @@ function upload_drawing() {
         })
     }).then(response => {
         if (response.redirected) {
+            window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
 
@@ -216,6 +223,13 @@ function upload_drawing() {
 }
 
 function propagate() {
+    let startTime = Date.now();
+    let timer = document.getElementById('timer');
+    let intervalId = setInterval(function () {
+        let elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+        timer.textContent = `Time Elapsed: ${elapsed} seconds`;
+    }, 100);
+
     // Send the image data to the server
     fetch('/propagate', {
         method: 'POST',
@@ -227,11 +241,17 @@ function propagate() {
         })
     }).then(response => {
         if (response.redirected) {
+            window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
         if (!response.ok) {
             console.error('Failed to get mask.');
         }
+
+        clearInterval(intervalId);
+        let totalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
+        timer.textContent = `Time Elapsed: ${totalDuration} seconds`;
+
         return response.blob();
     }).then(blob => {
         // Create a URL for the blob
@@ -240,6 +260,7 @@ function propagate() {
         // Display processed image
         mask.src = imageUrl;
     }).catch(error => {
+        clearInterval(intervalId);
         console.error('Error saving image:', error);
     });
     undo_button.disabled = true;
@@ -258,6 +279,7 @@ function undo() {
         })
     }).then(response => {
         if (response.redirected) {
+            window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
         if (!response.ok) {
@@ -277,13 +299,26 @@ function undo() {
 }
 
 function inpaint() {
+    let startTime = Date.now();
+    let timer = document.getElementById('timer');
+    let intervalId = setInterval(function () {
+        let elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+        timer.textContent = `Time Elapsed: ${elapsed} seconds`;
+    }, 100);
+
     fetch('inpaint', {
         method: 'POST'
     }).then((response) => {
         if (response.redirected) {
+            window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
+
+        clearInterval(intervalId);
+        let totalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
+        timer.textContent = `Time Elapsed: ${totalDuration} seconds`;
     }).catch(error => {
+        clearInterval(intervalId);
         console.error('Error inpainting:', error);
     });
 }
