@@ -1,14 +1,18 @@
 <!doctype html>
 {% include 'flash.html' %}
 <html>
-  <head>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <title>Upload new File</title>
-  </head>
-  <body>
-    <h1>Upload new File</h1>
-    <form method=post action="/upload_file" enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-  </body>
+</head>
+<body>
+<h1>Upload new File</h1>
+<form id="upload_form" method=post action="/upload_file" enctype=multipart/form-data>
+    <div id="drop_area">
+        <label id="upload_label" for="video_file">Upload</label>
+        <input id="video_file" type=file name=file accept="video/*, image/gif">
+    </div>
+</form>
+<script src="{{url_for('static', filename='index.js')}}"></script>
+</body>
 </html>

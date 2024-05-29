@@ -1,0 +1,39 @@
+body {
+    background-color: darkgray;
+}
+
+#upload_label {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#upload_label:hover {
+    background-color: #0056b3;
+}
+
+#upload_label.disabled {
+    background-color: #6c757d;
+}
+
+#video_file {
+    display: none;
+}
+
+#drop_area {
+    border: 2px dashed #007bff;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+#drop_area.highlight {
+    background-color: red;
+}

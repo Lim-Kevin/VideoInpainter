@@ -56,8 +56,10 @@ def check_session_expired():
                 tzinfo=None) > SESSION_EXPIRATION_TIME:
             # Session expired, delete the corresponding folder
             if session['root_folder']:
+                print('Deleted session: ' + str(session['session_id']))
                 shutil.rmtree(session['root_folder'])
-            session.clear()
+                del manager_list[session['session_id']]
+                session.clear()
             return redirect(url_for('index'))
         else:
             # Renew session timeout
@@ -73,13 +75,17 @@ def check():
 @app.route('/delete_session')
 def delete_session():
     if session.get('root_folder'):
+        print('Deleted session: ' + str(session['session_id']))
         shutil.rmtree(session['root_folder'])
+        del manager_list[session['session_id']]
         session.clear()
     return redirect(url_for('index'))
 
 
 @app.route('/')
 def index():
+    session['video_uploaded'] = False
+    session['video_inpainted'] = False
     return render_template('index.html')
 
 
