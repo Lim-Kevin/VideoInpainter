@@ -19,10 +19,14 @@ document.addEventListener("DOMContentLoaded", function () {
     file_input.addEventListener("change", function () {
         if (file_input.files.length > 0) {
             upload_label.textContent = "Uploading...";
-            upload_label.classList.add("disabled");
             form.submit();
             file_input.disabled = true;
         }
+    });
+
+    // Click to open file dialog
+    drop_area.addEventListener("click", () => {
+        file_input.click();
     });
 
     // Prevent default drag behaviors

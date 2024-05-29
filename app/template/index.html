@@ -3,13 +3,13 @@
 <html>
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
-    <title>Upload new File</title>
+    <title>Inpainter</title>
 </head>
 <body>
 <h1>Upload new File</h1>
 <form id="upload_form" method=post action="/upload_file" enctype=multipart/form-data>
-    <div id="drop_area">
-        <label id="upload_label" for="video_file">Upload</label>
+    <div id="drop_area" class="dashed-gradient">
+        <p id="upload_label">Click or drag and drop</p>
         <input id="video_file" type=file name=file accept="video/*, image/gif">
     </div>
 </form>
