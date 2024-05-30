@@ -13,7 +13,13 @@ class ResultSlideshow extends Slideshow {
             }
         })
         // Set frame
-        this._slides.src = '/frame/' + this._current_frame
+        fetch('/frame/' + this._current_frame).then(response => {
+            if (!response.ok) {
+                window.removeEventListener('beforeunload', handle_before_unload);
+                window.location.href = '/'
+            }
+            this._slides.src = '/frame/' + this._current_frame
+        });
         this.value.textContent = 'Frame: ' + (this._current_frame + 1) + '/' + this.num_frames;
     }
 }
@@ -24,14 +30,16 @@ let num_frames = document.currentScript.getAttribute('num_frames'),
 let slideshow = new ResultSlideshow(num_frames, fps);
 
 function handle_before_unload() {
-    fetch('/delete_session').then(response => {
+    fetch('/delete_session', {
+        method: 'POST'
+    }).then(response => {
         if (response.redirected) {
             window.location.href = response.url;
         }
-    })
+    });
 }
 
-window.addEventListener('beforeunload', handle_before_unload)
+window.addEventListener('beforeunload', handle_before_unload);
 
 function again() {
     fetch('again', {

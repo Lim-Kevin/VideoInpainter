@@ -26,6 +26,8 @@ class MaskSlideshow extends Slideshow {
                 return;
             } else if (!response.ok) {
                 console.error('Failed to get mask.');
+                window.removeEventListener('beforeunload', handle_before_unload);
+                window.location.href = '/';
             }
             return response.blob();
         }).then(blob => {
@@ -45,14 +47,17 @@ class MaskSlideshow extends Slideshow {
 }
 
 function handle_before_unload() {
-    fetch('/delete_session').then(response => {
+    fetch('/delete_session', {
+        method: 'POST'
+    }).then(response => {
         if (response.redirected) {
             window.location.href = response.url;
         }
-    })
+    });
 }
 
-window.addEventListener('beforeunload', handle_before_unload)
+window.addEventListener('beforeunload', handle_before_unload);
+
 
 /*
     Setting up the canvas

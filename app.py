@@ -72,8 +72,10 @@ def check():
     return '', 200
 
 
-@app.route('/delete_session')
+@app.route('/delete_session', methods=['POST'])
 def delete_session():
+    session['video_uploaded'] = False
+    session['video_inpainted'] = False
     if session.get('root_folder'):
         print('Deleted session: ' + str(session['session_id']))
         shutil.rmtree(session['root_folder'])
