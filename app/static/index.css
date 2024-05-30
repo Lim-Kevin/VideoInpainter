@@ -1,25 +1,71 @@
 body {
-    background-color: darkgray;
+    background-color: lightgrey;
+    font-family: 'Montserrat', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    margin: 0;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+h1 {
+    font-size: xxx-large;
+    padding-bottom: 30px;
+}
+
+.left, .right {
+    padding: 20px;
+    flex: 1;
+}
+
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#outer_label {
+    height: 30vh;
+    min-height: 200px;
+}
+
+#drop_area {
+    width: 90%;
+    text-align: left;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='15' ry='15' stroke='black' stroke-width='7' stroke-dasharray='10 15' stroke-dashoffset='9' stroke-linecap='square'/%3e%3c/svg%3e");
+    border-radius: 15px;
+}
+
+#drop_area:hover {
+    background-color: #3c86fa;
+}
+
+#drop_area.highlight {
+    background-color: #3c86fa;
 }
 
 #video_file {
     display: none;
 }
 
-#drop_area {
-    padding: 20px;
-    margin: 50px;
-    text-align: center;
-    transition: background-color 0.3s ease;
-    cursor: pointer;
-    border: dashed;
-    border-radius: 15px;
+#upload_label {
+    font-size: xx-large;
+    font-weight: bold;
 }
 
-#drop_area:hover {
-    background-color: #007bff;
-}
-
-#drop_area.highlight {
-    background-color: red;
+#upload_label div {
+    font-size: x-large;
+    font-weight: bold;
+    margin-left: 20px;
 }

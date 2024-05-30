@@ -2,17 +2,43 @@
 {% include 'flash.html' %}
 <html>
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <title>Inpainter</title>
 </head>
 <body>
-<h1>Upload new File</h1>
-<form id="upload_form" method=post action="/upload_file" enctype=multipart/form-data>
-    <div id="drop_area" class="dashed-gradient">
-        <p id="upload_label">Click or drag and drop</p>
-        <input id="video_file" type=file name=file accept="video/*, image/gif">
+<header>
+    Inpainter
+</header>
+<div class="left">
+    <h1>Start by uploading a video</h1>
+    <div class="centered">
+        <div id="drop_area">
+            <form id="upload_form" method=post action="/upload_file" enctype=multipart/form-data>
+                <div id="outer_label" class="centered">
+                    <div id="upload_label">
+                        Click
+                        <div>
+                            or drag and drop
+                        </div>
+                    </div>
+                </div>
+                <input id="video_file" type=file name=file accept="video/*, image/gif">
+            </form>
+        </div>
     </div>
-</form>
+</div>
+<div class="right">
+    <h2>What is inpainting?</h2>
+    <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
+        dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
+        clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
+        consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed
+        diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea
+        takimata sanctus est Lorem ipsum dolor sit amet.
+    </p>
+</div>
+
 <script src="{{url_for('static', filename='index.js')}}"></script>
 </body>
 </html>
