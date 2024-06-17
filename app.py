@@ -174,6 +174,8 @@ def get_mask(num):
         image_path = os.path.join(session['root_folder'], 'empty.png')
 
     # Generate ETag for the image file
+    if not os.path.exists(image_path):
+        return 'Folder deleted', 404
     etag = generate_etag(image_path)
 
     # Check if client's ETag matches the current ETag

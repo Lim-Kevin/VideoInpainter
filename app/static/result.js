@@ -53,3 +53,43 @@ function again() {
         console.error('Error:', error);
     });
 }
+
+async function save_video() {
+    try {
+        // Make a POST request to the Flask API endpoint
+        const response = await fetch('/save_video', {
+            method: 'POST'
+        });
+        if (response.redirected) {
+            window.removeEventListener('beforeunload', handle_before_unload);
+            window.location.href = response.url;
+        }
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Create a temporary anchor element
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'inpainted.mp4';
+
+            // Append the anchor to the body
+            document.body.appendChild(a);
+
+            // Programmatically click the anchor to trigger the download
+            a.click();
+
+            // Remove the anchor element from the DOM
+            document.body.removeChild(a);
+            // Revoke the object URL to free up memory
+            window.URL.revokeObjectURL(url);
+        } else {
+            // Handle the error if the response is not okay
+            console.error('Failed to download video');
+        }
+    } catch (error) {
+        // Handle any other errors
+        console.error('Error:', error);
+    }
+}

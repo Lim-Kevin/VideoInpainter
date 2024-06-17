@@ -178,18 +178,34 @@ function reset_scribble() {
     clear_canvas()
 }
 
-// Sets the canvas to the same size as a given element
-function resize_canvas(element) {
-    let width = element.offsetWidth;
-    let height = element.offsetHeight;
-    canvas.width = width;
-    canvas.height = height;
+// Sets the canvas to the same size as the slideshow
+function resize_canvas() {
+    const img = slideshow.slides;
+    const canvas = document.getElementById('cv1');
+
+    const container = document.getElementById('canvas_container');
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    const imgAspectRatio = img.naturalWidth / img.naturalHeight;
+    const containerAspectRatio = containerWidth / containerHeight;
+
+    let drawWidth, drawHeight;
+
+    if (imgAspectRatio > containerAspectRatio) {
+        drawWidth = containerWidth;
+        drawHeight = containerWidth / imgAspectRatio;
+    } else {
+        drawWidth = containerHeight * imgAspectRatio;
+        drawHeight = containerHeight;
+    }
+
+    canvas.width = drawWidth;
+    canvas.height = drawHeight;
 }
 
-// Resize the canvas so that mouse coordinates are right
-window.onload = function () {
-    resize_canvas(slideshow.slides);
-}
+slideshow.slides.addEventListener('load', resize_canvas);
+window.addEventListener('resize', resize_canvas);
 
 function upload_drawing() {
     // Send the image data to the server
