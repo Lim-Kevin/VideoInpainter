@@ -22,6 +22,11 @@ h1 {
     padding-bottom: 30px;
 }
 
+.flex {
+    display: flex;
+    flex-direction: row;
+}
+
 .left, .right {
     padding: 20px;
     flex: 1;
@@ -68,4 +73,51 @@ h1 {
     font-size: x-large;
     font-weight: bold;
     margin-left: 20px;
+}
+
+/* Tablet */
+@media (max-width: 1025px) {
+    #upload_label {
+        font-size: xx-large;
+        padding-left: 24px;
+        padding-right: 20px;
+    }
+
+    #upload_label div {
+        font-size: x-large;
+        margin-left: 10px;
+    }
+
+    .flex {
+        flex-direction: column;
+    }
+}
+
+/* Smartphone */
+@media (max-width: 600px) {
+    h1 {
+        font-size: xxx-large;
+        padding-bottom: 30px;
+    }
+
+    body {
+        flex-direction: column;
+    }
+
+    header {
+        text-align: start;
+    }
+
+    #upload_label {
+        font-size: x-large;
+    }
+
+    #upload_label div {
+        font-size: large;
+        margin-left: 10px;
+    }
+
+    .flex {
+        flex-direction: column;
+    }
 }

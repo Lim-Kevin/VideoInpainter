@@ -2,14 +2,14 @@
     display: flex;
     width: 50vw;
     height: fit-content;
-    padding: 20px;
+    padding: 30px;
     flex-direction: column;
     flex-wrap: nowrap;
     justify-content: space-between;
 }
 
 #canvas_container {
-    background-color: lightgray;
+    background-color: darkgray;
     width: 100%;
     aspect-ratio: 16 / 9;
     position: relative;

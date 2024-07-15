@@ -86,8 +86,7 @@ def delete_session():
 
 @app.route('/')
 def index():
-    session['video_uploaded'] = False
-    session['video_inpainted'] = False
+    session.clear()
     return render_template('index.html')
 
 
