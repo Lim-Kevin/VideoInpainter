@@ -257,7 +257,6 @@ def save_video():
 def s2m():
     data = request.get_json()
     drawing_points = [tuple(p) for p in data['points']]
-
     # Scale drawing_points to image size
     h1 = data['height']
     w1 = data['width']

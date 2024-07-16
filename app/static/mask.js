@@ -90,13 +90,19 @@ function change_pos_neg() {
 
 change_button.onclick = change_pos_neg;
 
+// Convert touch event on mobile to mouse event
+canvas.addEventListener("touchstart", startDrawing);
+canvas.addEventListener("touchmove", draw);
+canvas.addEventListener("touchend", finishDrawing);
+
 // Event listeners to track mouse movements
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', finishDrawing);
-canvas.addEventListener('mouseout', stopDrawing);
+canvas.addEventListener('mouseout', finishDrawing);
 
 function startDrawing(e) {
+    e.preventDefault();
     if (e.button === 2) {
         return;
     }
@@ -111,28 +117,55 @@ function startDrawing(e) {
     ctx.lineCap = 'round';
     ctx.lineWidth = 3;
 
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    let x, y;
+    if (e.type === 'touchstart') {
+        let rect = e.target.getBoundingClientRect();
+        x = e.targetTouches[0].pageX - rect.left;
+        y = e.targetTouches[0].pageY - rect.top;
+    } else if (e.type === 'mousedown') {
+        x = e.offsetX;
+        y = e.offsetY;
+    }
+
+    [lastX, lastY] = [x, y];
     // Reset current drawing
     current_drawing_points = [];
 }
 
 function draw(e) {
+    e.preventDefault();
     if (!is_drawing) return; // Stop the function if not drawing
+
+    if (e.type === 'touchmove' && is_touch_out(e)) {
+        console.log('in')
+        finishDrawing(e);
+        return;
+    }
+    console.log('out')
 
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
+    let x, y;
+    if (e.type === 'touchmove') {
+        let rect = e.target.getBoundingClientRect();
+        x = e.targetTouches[0].pageX - rect.left;
+        y = e.targetTouches[0].pageY - rect.top;
+    } else if (e.type === 'mousemove') {
+        x = e.offsetX;
+        y = e.offsetY;
+    }
+    ctx.lineTo(x, y);
     ctx.stroke();
     ctx.closePath();
 
     current_drawing_points.push([lastX, lastY]);
 
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    [lastX, lastY] = [x, y];
 }
 
-function stopDrawing(e) {
-    is_drawing = false;
-}
+// function stopDrawing(e) {
+//     is_drawing = false;
+// }
 
 function finishDrawing(e) {
     // If right mouse button was released, do nothing
@@ -143,6 +176,19 @@ function finishDrawing(e) {
     is_drawing = false;
     upload_drawing();
 }
+
+// simulate mouseout event for touchevents
+function is_touch_out(e) {
+    let item = e.changedTouches.item(0);
+    if (e.target === null || item === null) return false;
+    let rect = e.target.getBoundingClientRect();
+    let is_out = rect.right > item.clientX &&
+        rect.left < item.clientX &&
+        rect.top < item.clientY &&
+        rect.bottom > item.clientY;
+    return !is_out;
+}
+
 
 function clear_canvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
