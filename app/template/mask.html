@@ -1,6 +1,8 @@
 <!doctype html>
 <html>
 <head>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='mask.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='video_base.css') }}">
@@ -10,32 +12,32 @@
 <header>
     Inpainter
 </header>
-<div id="player_container">
-    <div id="video_player">
-        <div id="canvas_container">
-            <canvas class="overlay" id="cv1" oncontextmenu="return false"></canvas>
-            <img id="slideshow"/>
-            <img class="overlay" id="mask"/>
-        </div>
-        <div id="seekbar">
-            <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
-            <datalist id="markers"></datalist>
-        </div>
-        <div id="controls">
-            <button id="play_button" class="control_button">Play/Pause</button>
-            <button id="reset_button" class="control_button" onclick="reset_scribble()">Reset frame</button>
-            <button id="change_button" class="control_button">Change +/-</button>
-            <button id="undo_button" class="control_button" onclick="undo()">Undo</button>
-            <button id="propagate_button" class="control_button" onclick="propagate()">Propagate</button>
-            <button id="inpaint_button" class="control_button" onclick="inpaint()">Inpaint</button>
-        </div>
-        <div id="info_container">
-            <p id="frames_display">Frame: 1/{{num_frames}}</p>
-            <p id="timer">Time elapsed: 0 seconds</p>
+<div class="flex">
+    <div id="player_container">
+        <div id="video_player">
+            <div id="canvas_container">
+                <canvas class="overlay" id="cv1" oncontextmenu="return false"></canvas>
+                <img id="slideshow"/>
+                <img class="overlay" id="mask"/>
+            </div>
+            <div id="seekbar">
+                <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
+                <datalist id="markers"></datalist>
+            </div>
+            <div id="controls">
+                <button id="play_button" class="control_button">Play/Pause</button>
+                <button id="reset_button" class="control_button" onclick="reset_scribble()">Reset frame</button>
+                <button id="change_button" class="control_button">Change +/-</button>
+                <button id="undo_button" class="control_button" onclick="undo()">Undo</button>
+                <button id="propagate_button" class="control_button" onclick="propagate()">Propagate</button>
+                <button id="inpaint_button" class="control_button" onclick="inpaint()">Inpaint</button>
+            </div>
+            <div id="info_container">
+                <p id="frames_display">Frame: 1/{{num_frames}}</p>
+                <p id="timer">Time elapsed: 0 seconds</p>
+            </div>
         </div>
     </div>
-</div>
-<div>
     <div id="instructions">
         <h1>Instructions</h1>
         <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et

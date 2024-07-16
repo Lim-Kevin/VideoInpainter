@@ -1,5 +1,4 @@
 class Slideshow {
-
     constructor(num_frames, fps) {
         this.num_frames = num_frames;
         this.fps = fps;
@@ -13,7 +12,7 @@ class Slideshow {
         this.update_slideshow();
 
         // Add options to datalist, which adds tick marks below the input slider
-        this.input = document.getElementById('slider');
+        this._slider = document.getElementById('slider');
 
         // Remove tick marks if there are too many
         let num_options = (this.num_frames > 200) ? 0 : this.num_frames;
@@ -26,7 +25,7 @@ class Slideshow {
         }
 
         // Called when slider is being moved
-        this.input.addEventListener("change", (event) => {
+        this._slider.addEventListener("change", (event) => {
             this._current_frame = parseInt(event.target.value);
             this.update_slideshow();
             this.reset_interaction();
@@ -34,12 +33,12 @@ class Slideshow {
 
         this.playbutton.addEventListener('click', this.play_or_pause.bind(this));
 
-        setInterval(this.play_slideshow.bind(this), 1/this.fps* 1000);
+        setInterval(this.play_slideshow.bind(this), 1 / this.fps * 1000);
 
     }
 
     reset_interaction() {
-            // Reset interactions in manager
+        // Reset interactions in manager
         fetch('/reset_interaction', {
             method: 'POST',
             headers: {
@@ -51,7 +50,7 @@ class Slideshow {
     }
 
     set_seekbar_value(n) {
-        this.input.value = n;
+        this._slider.value = n;
     }
 
     play_or_pause() {
@@ -82,6 +81,10 @@ class Slideshow {
 
     get slides() {
         return this._slides;
+    }
+
+    get slider() {
+        return this._slider;
     }
 
 }

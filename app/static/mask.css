@@ -61,3 +61,26 @@ header {
 #instructions {
     margin: 30px;
 }
+
+.flex {
+    display: flex;
+    flex-direction: row;
+}
+
+/* Tablet */
+@media (max-width: 1025px) {
+    .flex {
+        flex-direction: column;
+    }
+}
+
+/* Smartphone */
+@media (max-width: 600px) {
+    body {
+        flex-direction: column;
+    }
+
+    header {
+        text-align: start;
+    }
+}

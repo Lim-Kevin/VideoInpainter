@@ -78,13 +78,11 @@ h1 {
 /* Tablet */
 @media (max-width: 1025px) {
     #upload_label {
-        font-size: xx-large;
         padding-left: 24px;
         padding-right: 20px;
     }
 
     #upload_label div {
-        font-size: x-large;
         margin-left: 10px;
     }
 
@@ -95,11 +93,6 @@ h1 {
 
 /* Smartphone */
 @media (max-width: 600px) {
-    h1 {
-        font-size: xxx-large;
-        padding-bottom: 30px;
-    }
-
     body {
         flex-direction: column;
     }
@@ -115,9 +108,5 @@ h1 {
     #upload_label div {
         font-size: large;
         margin-left: 10px;
-    }
-
-    .flex {
-        flex-direction: column;
     }
 }

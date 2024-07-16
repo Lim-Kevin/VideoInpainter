@@ -84,6 +84,15 @@ let current_drawing_points = [];
 
 let change_button = document.getElementById('change_button');
 
+
+// If the window is smaller than 600px (on smartphone) then remove the markers
+function check_window_size() {
+    if (window.innerWidth < 600) {
+        slideshow.slider.removeAttribute('list');
+    }
+}
+check_window_size();
+
 function change_pos_neg() {
     is_pos_scribbles = !is_pos_scribbles;
 }
@@ -165,7 +174,7 @@ function draw(e) {
 
 function finishDrawing(e) {
     // If right mouse button was released, do nothing
-    if (e.button === 2) {
+    if (e.button === 2 || !is_drawing) {
         return;
     }
 
@@ -184,7 +193,6 @@ function is_touch_out(e) {
         rect.bottom > item.clientY;
     return !is_in;
 }
-
 
 function clear_canvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
