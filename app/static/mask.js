@@ -163,10 +163,6 @@ function draw(e) {
     [lastX, lastY] = [x, y];
 }
 
-// function stopDrawing(e) {
-//     is_drawing = false;
-// }
-
 function finishDrawing(e) {
     // If right mouse button was released, do nothing
     if (e.button === 2) {
@@ -182,11 +178,11 @@ function is_touch_out(e) {
     let item = e.changedTouches.item(0);
     if (e.target === null || item === null) return false;
     let rect = e.target.getBoundingClientRect();
-    let is_out = rect.right > item.clientX &&
+    let is_in = rect.right > item.clientX &&
         rect.left < item.clientX &&
         rect.top < item.clientY &&
         rect.bottom > item.clientY;
-    return !is_out;
+    return !is_in;
 }
 
 
