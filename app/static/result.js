@@ -29,6 +29,14 @@ let num_frames = document.currentScript.getAttribute('num_frames'),
 
 let slideshow = new ResultSlideshow(num_frames, fps);
 
+// If the window is smaller than 600px (on smartphone) then remove the markers
+function check_window_size() {
+    if (window.innerWidth < 600) {
+        slideshow.slider.removeAttribute('list');
+    }
+}
+check_window_size();
+
 function handle_before_unload() {
     fetch('/delete_session', {
         method: 'POST'

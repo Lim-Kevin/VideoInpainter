@@ -24,7 +24,6 @@ header {
 
 #save_button {
     width: 100%;
-    margin: 0;
 }
 
 #player_container {
@@ -42,4 +41,20 @@ header {
 
 #frames_display {
     align-self: flex-start;
+}
+
+/* Tablet */
+@media (max-width: 1025px) {
+
+}
+
+/* Smartphone */
+@media (max-width: 600px) {
+    body {
+        flex-direction: column;
+    }
+
+    header {
+        text-align: start;
+    }
 }
