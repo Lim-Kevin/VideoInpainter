@@ -84,3 +84,44 @@ header {
         text-align: start;
     }
 }
+
+/* Alert */
+#alert_container {
+    display: flex;
+    flex-direction: column;
+}
+
+#alert {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 10px;
+    transform: translateX(-50%);
+    width: fit-content;
+    padding: 0 30px;
+    background-color: rgba(60, 134, 250, 0.9);
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+#alert.show {
+    display: flex;
+}
+
+#alert.visible {
+    opacity: 1;
+}
+
+#close_button {
+    padding-left: 10px;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+#alert_message {
+    font-size: larger;
+}

@@ -12,41 +12,52 @@
 <header>
     Inpainter
 </header>
-<div class="flex">
-    <div id="player_container">
-        <div id="video_player">
-            <div id="canvas_container">
-                <canvas class="overlay" id="cv1" oncontextmenu="return false"></canvas>
-                <img id="slideshow"/>
-                <img class="overlay" id="mask"/>
-            </div>
-            <div id="seekbar">
-                <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
-                <datalist id="markers"></datalist>
-            </div>
-            <div id="controls">
-                <button id="play_button" class="control_button">Play/Pause</button>
-                <button id="reset_button" class="control_button" onclick="reset_scribble()">Reset frame</button>
-                <button id="change_button" class="control_button">Change +/-</button>
-                <button id="undo_button" class="control_button" onclick="undo()">Undo</button>
-                <button id="propagate_button" class="control_button" onclick="propagate()">Propagate</button>
-                <button id="inpaint_button" class="control_button" onclick="inpaint()">Inpaint</button>
-            </div>
-            <div id="info_container">
-                <p id="frames_display">Frame: 1/{{num_frames}}</p>
-                <p id="timer">Time elapsed: 0 seconds</p>
+<div id="alert_container">
+    <div id="alert">
+        <p id="alert_message"></p>
+        <span id="close_button">&times;</span>
+    </div>
+    <div class="flex">
+        <div id="player_container">
+            <div id="video_player">
+                <div id="canvas_container">
+                    <canvas class="overlay" id="cv1" oncontextmenu="return false"></canvas>
+                    <img id="slideshow"/>
+                    <img class="overlay" id="mask"/>
+                </div>
+                <div id="seekbar">
+                    <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
+                    <datalist id="markers"></datalist>
+                </div>
+                <div id="controls">
+                    <button id="play_button" class="control_button">Play/Pause</button>
+                    <button id="reset_button" class="control_button" onclick="reset_scribble()">Reset frame</button>
+                    <button id="change_button" class="control_button">Change +/-</button>
+                    <button id="undo_button" class="control_button" onclick="undo()">Undo</button>
+                    <button id="propagate_button" class="control_button" onclick="propagate()">Propagate</button>
+                    <button id="inpaint_button" class="control_button" onclick="inpaint()">Inpaint</button>
+                </div>
+                <div id="info_container">
+                    <p id="frames_display">Frame: 1/{{num_frames}}</p>
+                    <p id="timer">Time elapsed: 0 seconds</p>
+                </div>
             </div>
         </div>
-    </div>
-    <div id="instructions">
-        <h1>Instructions</h1>
-        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
-            dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-            clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
-            consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
-            sed
-            diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea
-            takimata sanctus est Lorem ipsum dolor sit amet.</p>
+        <div id="instructions">
+            <h1>Instructions</h1>
+            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore
+                et
+                dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
+                Stet
+                clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit
+                amet,
+                consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
+                erat,
+                sed
+                diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no
+                sea
+                takimata sanctus est Lorem ipsum dolor sit amet.</p>
+        </div>
     </div>
 </div>
 

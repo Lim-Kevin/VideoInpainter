@@ -1,15 +1,13 @@
 import hashlib
 import os
 import shutil
-import time
 import uuid
 from datetime import timedelta, datetime
 
 import cv2
 from PIL import Image
-from flask import Flask, flash, request, redirect, send_from_directory, render_template, send_file, url_for, \
+from flask import Flask, request, redirect, send_from_directory, render_template, send_file, url_for, \
     session
-from git.objects.util import utc
 from werkzeug.utils import secure_filename
 
 from lib.ProPainter.inference_propainter import inpaint
@@ -86,7 +84,7 @@ def delete_session():
 
 @app.route('/')
 def index():
-    session.clear()
+    # session.clear()
     return render_template('index.html')
 
 
@@ -95,12 +93,12 @@ def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
+            # flash('No file part')
             return redirect(request.url)
         file = request.files['file']
         # If the user does not select a file, the browser submits an empty file without a filename.
         if file.filename == '':
-            flash('No selected file')
+            # flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             session['video_uploaded'] = True
@@ -135,8 +133,8 @@ def upload_file():
             manager_list[session['session_id']] = MiVOS_Manager(frame_folder)
 
             return redirect(url_for('mask_page'))
-        else:
-            flash('File extension not allowed')
+        # else:
+            # flash('File extension not allowed')
     return redirect(url_for('index'))
 
 
@@ -277,13 +275,15 @@ def s2m():
 
 @app.route('/propagate', methods=['POST'])
 def propagate():
-    start_time = time.time()
-
     data = request.get_json()
     mask_list = manager_list[session['session_id']].on_run(data['frame_num'])
 
     mask_folder = os.path.join(session['root_folder'], 'masks')
     os.makedirs(mask_folder, exist_ok=True)
+
+    if mask_list is None or len(mask_list) <= 0:
+        # flash('No mask available to propagate')
+        return 'Failed to get mask', 404
 
     for i in range(len(mask_list)):
         img = compose_mask(mask_list[i])
@@ -295,9 +295,6 @@ def propagate():
 
     # Return current mask for instant feedback
     mask_io = array_to_bytesio(mask)
-
-    end_time = time.time()
-    duration = end_time - start_time
     return send_file(mask_io, mimetype='image/png')
 
 
