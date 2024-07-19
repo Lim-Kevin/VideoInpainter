@@ -315,15 +315,16 @@ function propagate() {
             window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
+
+        clearInterval(intervalId);
+        let totalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
+        timer.textContent = `Time Elapsed: ${totalDuration} seconds`;
+
         if (!response.ok) {
             console.error('Failed to get mask.');
             show_alert('First draw a mask to propagate');
             return;
         }
-
-        clearInterval(intervalId);
-        let totalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
-        timer.textContent = `Time Elapsed: ${totalDuration} seconds`;
 
         return response.blob();
     }).then(blob => {
@@ -385,10 +386,14 @@ function inpaint() {
             window.removeEventListener('beforeunload', handle_before_unload);
             window.location.href = response.url;
         }
-
         clearInterval(intervalId);
         let totalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
         timer.textContent = `Time Elapsed: ${totalDuration} seconds`;
+
+        if (!response.ok) {
+            console.error('Failed to inpaint.');
+            show_alert('No mask to inpaint');
+        }
     }).catch(error => {
         clearInterval(intervalId);
         console.error('Error inpainting:', error);

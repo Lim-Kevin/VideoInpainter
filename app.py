@@ -134,7 +134,7 @@ def upload_file():
 
             return redirect(url_for('mask_page'))
         # else:
-            # flash('File extension not allowed')
+        # flash('File extension not allowed')
     return redirect(url_for('index'))
 
 
@@ -283,7 +283,7 @@ def propagate():
 
     if mask_list is None or len(mask_list) <= 0:
         # flash('No mask available to propagate')
-        return 'Failed to get mask', 404
+        return 'Failed to get mask', 400
 
     for i in range(len(mask_list)):
         img = compose_mask(mask_list[i])
@@ -300,10 +300,13 @@ def propagate():
 
 @app.route('/inpaint', methods=['POST'])
 def inpaint_video():
-    inpaint(os.path.join(session['root_folder'], 'frames'),
-            os.path.join(session['root_folder'], 'masks'),
-            os.path.join(session['root_folder'], 'frames'),
-            session.get('fps'))
+    try:
+        inpaint(os.path.join(session['root_folder'], 'frames'),
+                os.path.join(session['root_folder'], 'masks'),
+                os.path.join(session['root_folder'], 'frames'),
+                session.get('fps'))
+    except:
+        return 'Failed to inpaint', 400
 
     session['video_inpainted'] = True
     return redirect(url_for('result_page'))
