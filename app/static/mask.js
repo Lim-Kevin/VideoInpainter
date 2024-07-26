@@ -2,7 +2,6 @@
     Setting up the slideshow
  */
 
-// TODO: disable propagate and inpaint buttons
 class MaskSlideshow extends Slideshow {
     constructor(num_frames, fps) {
         super(num_frames, fps);
@@ -401,7 +400,7 @@ function inpaint() {
 }
 
 /*
-    Setting up alert
+    Setting up alerts
  */
 let alert_message = document.getElementById('alert_message');
 let alert_div = document.getElementById('alert');

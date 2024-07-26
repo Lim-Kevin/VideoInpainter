@@ -65,3 +65,39 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 });
+
+/*
+    Setting up alerts
+ */
+let alert_message = document.getElementById('alert_message');
+let alert_div = document.getElementById('alert');
+let alert_close_button = document.getElementById('close_button');
+let alert_timeout;
+
+function show_alert(message) {
+    alert_message.innerText = message;
+    alert_div.classList.add('show');
+    alert_div.classList.add('visible')
+
+    if (alert_timeout) {
+        clearTimeout(alert_timeout);
+    }
+
+    alert_timeout = setTimeout(() => {
+        close_alert();
+    }, 7000);
+}
+
+function close_alert() {
+    alert_div.classList.remove('visible')
+
+    if (alert_timeout) {
+        clearTimeout(alert_timeout);
+    }
+    // Delay hiding the alert box to allow for the fade-out transition
+    setTimeout(() => {
+        alert_div.classList.remove('show');
+    }, 500); // Match this to the CSS transition duration
+}
+
+alert_close_button.addEventListener("click", close_alert);

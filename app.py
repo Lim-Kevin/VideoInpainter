@@ -26,14 +26,12 @@ app.secret_key = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 16 MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 6 MB
 manager_list = {}
 
 SESSION_EXPIRATION_TIME = timedelta(minutes=30)  # Set time the session should expire in
 
 
-# TODO: Use flashes
-# TODO: Add progressbars in UI
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -53,12 +51,7 @@ def check_session_expired():
         if datetime.utcnow().replace(tzinfo=None) - session['creation_time'].replace(
                 tzinfo=None) > SESSION_EXPIRATION_TIME:
             # Session expired, delete the corresponding folder
-            if session['root_folder']:
-                print('Deleted session: ' + str(session['session_id']))
-                shutil.rmtree(session['root_folder'])
-                del manager_list[session['session_id']]
-                session.clear()
-            return redirect(url_for('index'))
+            delete_session()
         else:
             # Renew session timeout
             session['creation_time'] = datetime.utcnow()
@@ -72,8 +65,6 @@ def check():
 
 @app.route('/delete_session', methods=['POST'])
 def delete_session():
-    session['video_uploaded'] = False
-    session['video_inpainted'] = False
     if session.get('root_folder'):
         print('Deleted session: ' + str(session['session_id']))
         shutil.rmtree(session['root_folder'])
@@ -84,7 +75,6 @@ def delete_session():
 
 @app.route('/')
 def index():
-    # session.clear()
     return render_template('index.html')
 
 
@@ -133,8 +123,8 @@ def upload_file():
             manager_list[session['session_id']] = MiVOS_Manager(frame_folder)
 
             return redirect(url_for('mask_page'))
-        # else:
-        # flash('File extension not allowed')
+        else:
+            return render_template('index.html', message='Some kind of error')
     return redirect(url_for('index'))
 
 
@@ -155,6 +145,11 @@ def result_page():
 @app.route('/uploads/<filename>')
 def get_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return render_template('index.html', message='File is too large, please submit a file smaller than 16 MB')
 
 
 @app.route('/frame/<num>')
@@ -259,6 +254,7 @@ def s2m():
     h1 = data['height']
     w1 = data['width']
     h2, w2 = manager_list[session['session_id']].get_size()
+    # TODO: potential error with session id
     drawing_points = scale_points(drawing_points, h1, w1, h2, w2)
     mask = manager_list[session['session_id']].on_drawn(drawing_points, data['frame_num'], int(data['k']))
 
