@@ -82,9 +82,6 @@ let is_drawing = false,
 // A list of points in the current drawing
 let current_drawing_points = [];
 
-let change_button = document.getElementById('change_button');
-
-
 // If the window is smaller than 600px (on smartphone) then remove the markers
 function check_window_size() {
     if (window.innerWidth < 600) {
@@ -97,8 +94,6 @@ check_window_size();
 function change_pos_neg() {
     is_pos_scribbles = !is_pos_scribbles;
 }
-
-change_button.onclick = change_pos_neg;
 
 // Convert touch event on mobile to mouse event
 canvas.addEventListener("touchstart", startDrawing);

@@ -31,7 +31,8 @@ manager_list = {}
 
 SESSION_EXPIRATION_TIME = timedelta(minutes=30)  # Set time the session should expire in
 
-
+# TODO: Make logo for webapp and make header return to index
+# TODO: Make Change +/- button indicate what mode is on
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

@@ -17,6 +17,12 @@ header {
     font-weight: bold;
 }
 
+header a {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
 #save_button_form {
     flex: 1;
     margin: 0 10px;
