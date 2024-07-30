@@ -24,6 +24,10 @@ SECRET_KEY = os.urandom(12)  # Set the secret key to a string of random symbols
 app.secret_key = SECRET_KEY
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+if os.path.exists(UPLOAD_FOLDER):
+    shutil.rmtree(UPLOAD_FOLDER)
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 6 MB
