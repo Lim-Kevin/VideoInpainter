@@ -23,6 +23,11 @@ header a {
     cursor: pointer;
 }
 
+.flex {
+    display: flex;
+    flex-direction: row;
+}
+
 #save_button_form {
     flex: 1;
     margin: 0 10px;

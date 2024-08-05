@@ -12,25 +12,46 @@
 <header>
     <a href="{{url_for('index')}}">Inpainter</a>
 </header>
-<div id="player_container">
-    <div id="video_player">
-        <div id="canvas_container">
-            <img id="slideshow" src="{{url_for('get_frame', num=0)}}"/>
+<div class="flex">
+    <div id="player_container">
+        <div id="video_player">
+            <div id="canvas_container">
+                <img id="slideshow" src="{{url_for('get_frame', num=0)}}"/>
+            </div>
+            <div id="seekbar">
+                <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
+                <datalist id="markers"></datalist>
+            </div>
+            <div id="controls">
+                <button id="play_button" class="control_button">Play/Pause</button>
+                <button id="save_button" class="control_button" onclick="save_video()">Save video</button>
+                <button id="again_button" class="control_button" onclick="again()">Inpaint again</button>
+            </div>
+            <p id="frames_display">Frame: 1/{{num_frames}}</p>
         </div>
-        <div id="seekbar">
-            <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
-            <datalist id="markers"></datalist>
-        </div>
-        <div id="controls">
-            <button id="play_button" class="control_button">Play/Pause</button>
-            <button id="save_button" class="control_button" onclick="save_video()">Save video</button>
-            <button id="again_button" class="control_button" onclick="again()">Inpaint again</button>
-        </div>
-        <p id="frames_display">Frame: 1/{{num_frames}}</p>
+    </div>
+    <div id="instructions">
+        <h1>Instructions</h1>
+        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut
+            labore
+            et
+            dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea
+            rebum.
+            Stet
+            clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit
+            amet,
+            consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna
+            aliquyam
+            erat,
+            sed
+            diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren,
+            no
+            sea
+            takimata sanctus est Lorem ipsum dolor sit amet.</p>
     </div>
 </div>
 
-<script src="{{url_for('static', filename='slideshow.js')}}"></script>
-<script src="{{url_for('static', filename='result.js')}}" , fps="{{fps}}" , num_frames="{{num_frames}}"></script>
+    <script src="{{url_for('static', filename='slideshow.js')}}"></script>
+    <script src="{{url_for('static', filename='result.js')}}" , fps="{{fps}}" , num_frames="{{num_frames}}"></script>
 </body>
 </html>
