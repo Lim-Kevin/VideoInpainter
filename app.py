@@ -30,10 +30,11 @@ if os.path.exists(UPLOAD_FOLDER):
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size of 6 MB
+app.config['MAX_CONTENT_LENGTH'] = 6 * 1024 * 1024  # Max file size of 6 MB
 manager_list = {}
 
 SESSION_EXPIRATION_TIME = timedelta(minutes=30)  # Set time the session should expire in
+
 
 # TODO: Update Google Drive link in README.md
 
@@ -129,7 +130,7 @@ def upload_file():
 
             return redirect(url_for('mask_page'))
         else:
-            return render_template('index.html', message='Some kind of error')
+            return render_template('index.html', message='Failed to upload file')
     return redirect(url_for('index'))
 
 
@@ -154,7 +155,7 @@ def get_file(filename):
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
-    return render_template('index.html', message='File is too large, please submit a file smaller than 16 MB')
+    return render_template('index.html', message='File is too large, please submit a file smaller than 6 MB')
 
 
 @app.route('/frame/<num>')

@@ -41,11 +41,16 @@
     }
 }
 
-.control_button:disabled {
+#undo_button:disabled {
     background-color: lightgray;
     color: darkgray;
     border-color: darkgray;
     cursor: not-allowed;
+}
+
+.control_button:disabled {
+    cursor: not-allowed;
+    color: black;
 }
 
 #play_button {

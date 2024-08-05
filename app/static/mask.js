@@ -62,7 +62,10 @@ window.addEventListener('beforeunload', handle_before_unload);
 /*
     Setting up the canvas
  */
-let undo_button = document.getElementById('undo_button')
+let undo_button = document.getElementById('undo_button'),
+    propagation_button = document.getElementById('propagate_button'),
+    reset_button = document.getElementById('reset_button'),
+    inpaint_button = document.getElementById('inpaint_button');
 
 let canvas = document.getElementById('cv1'),
     ctx = canvas.getContext('2d'),
@@ -251,6 +254,18 @@ function resize_canvas() {
 slideshow.slides.addEventListener('load', resize_canvas);
 window.addEventListener('resize', resize_canvas);
 
+function disable_buttons() {
+    inpaint_button.disabled = true;
+    propagation_button.disabled = true;
+    reset_button.disabled = true;
+}
+
+function enable_buttons() {
+    inpaint_button.disabled = false;
+    propagation_button.disabled = false;
+    reset_button.disabled = false;
+}
+
 function upload_drawing() {
     // Send the image data to the server
     fetch('/upload_canvas', {
@@ -288,6 +303,8 @@ function upload_drawing() {
 }
 
 function propagate() {
+    disable_buttons();
+    undo_button.disabled = true;
     let startTime = Date.now();
     let timer = document.getElementById('timer');
     let intervalId = setInterval(function () {
@@ -317,6 +334,7 @@ function propagate() {
         if (!response.ok) {
             console.error('Failed to get mask.');
             show_alert('First draw a mask to propagate');
+            enable_buttons();
             return;
         }
 
@@ -327,11 +345,11 @@ function propagate() {
 
         // Display processed image
         mask.src = imageUrl;
+        enable_buttons();
     }).catch(error => {
         clearInterval(intervalId);
         console.error('Error saving image:', error);
     });
-    undo_button.disabled = true;
 }
 
 
@@ -366,6 +384,9 @@ function undo() {
 }
 
 function inpaint() {
+    disable_buttons();
+    undo_button.disabled = true;
+
     let startTime = Date.now();
     let timer = document.getElementById('timer');
     let intervalId = setInterval(function () {
@@ -388,6 +409,8 @@ function inpaint() {
             console.error('Failed to inpaint.');
             show_alert('No mask to inpaint');
         }
+        enable_buttons();
+        undo_button.disabled = false;
     }).catch(error => {
         clearInterval(intervalId);
         console.error('Error inpainting:', error);
