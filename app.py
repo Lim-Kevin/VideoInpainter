@@ -279,8 +279,7 @@ def s2m():
 
 @app.route('/propagate', methods=['POST'])
 def propagate():
-    data = request.get_json()
-    mask_list = manager_list[session['session_id']].on_run(data['frame_num'])
+    mask_list = manager_list[session['session_id']].on_run()
 
     mask_folder = os.path.join(session['root_folder'], 'masks')
     os.makedirs(mask_folder, exist_ok=True)
@@ -294,12 +293,7 @@ def propagate():
         img = Image.fromarray(img)
         img.save(os.path.join(mask_folder, '{:05d}.png'.format(i)))
 
-    mask = mask_list[data['frame_num']]
-    mask = compose_mask(mask)
-
-    # Return current mask for instant feedback
-    mask_io = array_to_bytesio(mask)
-    return send_file(mask_io, mimetype='image/png')
+    return 'Propagated', 200
 
 
 @app.route('/inpaint', methods=['POST'])

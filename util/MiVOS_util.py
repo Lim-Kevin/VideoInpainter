@@ -35,7 +35,7 @@ class MiVOS_Manager:
 
         self.s2m_controller = S2MController(s2m_model, num_objects=self.num_objects, ignore_class=255)
 
-        self.processor = InferenceCore(prop_model, fuse_model, images_to_torch(self.images, device='cpu'),
+        self.processor = InferenceCore(prop_model, fuse_model, images_to_torch(self.images, device='cuda:0'),
                                        self.num_objects, mem_freq=5, mem_profile=0)
 
         # initialize visualization
@@ -70,11 +70,10 @@ class MiVOS_Manager:
         self.interaction = None
         self.this_frame_interactions = []
 
-    def on_run(self, frame_num):
+    def on_run(self):
         """
         Propagate the masks
         """
-        self.cursur = frame_num
 
         if self.interacted_mask is None:
             print('Cannot propagate! No interacted mask!')

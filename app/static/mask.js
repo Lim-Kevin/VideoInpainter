@@ -317,10 +317,7 @@ function propagate() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            frame_num: slideshow.current_frame
-        })
+        }
     }).then(response => {
         if (response.redirected) {
             window.removeEventListener('beforeunload', handle_before_unload);
@@ -335,16 +332,9 @@ function propagate() {
             console.error('Failed to get mask.');
             show_alert('First draw a mask to propagate');
             enable_buttons();
-            return;
         }
-
-        return response.blob();
-    }).then(blob => {
-        // Create a URL for the blob
-        let imageUrl = URL.createObjectURL(blob);
-
-        // Display processed image
-        mask.src = imageUrl;
+    }).then(response => {
+        slideshow.update_slideshow();
         enable_buttons();
     }).catch(error => {
         clearInterval(intervalId);
