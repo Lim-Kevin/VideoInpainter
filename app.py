@@ -17,6 +17,7 @@ from util.scribble_util import scale_points
 
 UPLOAD_FOLDER = 'app/uploads'  # Folder where images should be saved to
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'gif', 'mpeg', 'mov', 'webm', 'flv'}
+MAX_CONTENT_LENGTH_IN_MB = 6
 
 app = Flask(__name__, template_folder='app/template', static_folder='app/static')
 
@@ -30,7 +31,7 @@ if os.path.exists(UPLOAD_FOLDER):
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-app.config['MAX_CONTENT_LENGTH'] = 6 * 1024 * 1024  # Max file size of 6 MB
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH_IN_MB * 1024 * 1024  # Max file size
 manager_list = {}
 
 SESSION_EXPIRATION_TIME = timedelta(minutes=30)  # Set time the session should expire in
@@ -155,7 +156,8 @@ def get_file(filename):
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
-    return render_template('index.html', message='File is too large, please submit a file smaller than 6 MB')
+    return render_template('index.html',
+                           message='File is too large, please submit a file smaller than ' + MAX_CONTENT_LENGTH_IN_MB + ' MB')
 
 
 @app.route('/frame/<num>')
