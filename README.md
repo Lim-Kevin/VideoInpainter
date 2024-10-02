@@ -1,5 +1,6 @@
 # VideoInpainter
-
+[[HuggingFace Demo]](https://lim-kevin-videoinpainterhf.hf.space/)
+[[HuggingFace Source Code]](https://huggingface.co/spaces/Lim-Kevin/VideoInpainterHF)
 ## Prerequisites
 
 To install PyTorch look up the command on pytorch.org. Installation for pytorch with CUDA 11.8:
