@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='twentytwenty.css') }}">
+    <title>Video Inpainter</title>
+</head>
+<body>
+<div id="alert_container">
+    <div id="alert">
+        <p id="alert_message"></p>
+        <span id="close_button">&times;</span>
+    </div>
+    <div id="header_container">
+        <header>
+            Inpainter
+        </header>
+        <div class="flex">
+            <div class="left">
+                <h1>Start by uploading a video</h1>
+                <div class="centered">
+                    <div id="drop_area">
+                        <form id="upload_form" method=post action="/upload_file" enctype=multipart/form-data>
+                            <div id="outer_label" class="centered">
+                                <div id="upload_label">
+                                    Click
+                                    <div>
+                                        or drag and drop
+                                    </div>
+                                </div>
+                            </div>
+                            <input id="video_file" type=file name=file accept="video/*, image/gif">
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <h2>What is Video Inpainting?</h2>
+                <p>Video inpainting is a powerful technique used to reconstruct missing, corrupted, or unwanted parts of
+                    a video by analyzing the surrounding frames and generating realistic content to seamlessly fill the
+                    gaps.<br>
+                    By using <strong>advanced machine learning models</strong>, this platform ensures smooth, natural-looking results
+                    that blend seamlessly with the original content.<br>
+                    Whether you're working on <strong>recovering old or damaged footage, editing out people or objects from a
+                    scene, or looking to clean up a video by removing logos and watermarks</strong>, our tool simplifies the
+                    entire process.<br><br>
+                    <strong>
+                    Simply start by uploading your own video!</strong>
+                </p>
+                <div class="twentytwenty_container">
+                    <img src="{{ url_for('static', filename='assets/breakdance_flare.gif') }}" />
+                    <img src="{{ url_for('static', filename='assets/breakdance_flare_inpainted.gif') }}" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='index.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery-3.7.1.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.event.move.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.twentytwenty.js') }}"></script>
+<script>
+    // Check if a message is passed from the Flask application
+    const message = "{{ message | safe }}";
+    if (message && message !== 'None') {
+        show_alert(message);
+    }
+
+    $(function () {
+        $(".twentytwenty_container").twentytwenty();
+    });
+</script>
+</body>
+</html>

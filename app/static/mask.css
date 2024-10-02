@@ -1,0 +1,159 @@
+body {
+    background-color: lightgrey;
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+
+#header_container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 40px 10px 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+header a {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+#player_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+#info_container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+#mask {
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#cv1 {
+    z-index: 20;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#centered {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#instructions {
+    margin: 30px;
+}
+
+.flex {
+    display: flex;
+    flex-direction: row;
+}
+
+/* Alert */
+#alert_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+}
+
+
+#alert {
+    display: none;
+    position: fixed;
+    top: 10px;
+    width: fit-content;
+    padding: 0 30px;
+    margin: 0 30px;
+    background-color: rgba(60, 134, 250, 0.9);
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+#alert.show {
+    display: flex;
+}
+
+#alert.visible {
+    opacity: 1;
+}
+
+#close_button {
+    padding-left: 10px;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+#alert_message {
+    font-size: larger;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+p .material-symbols-outlined {
+    font-size: 1em;
+    vertical-align: middle;
+}
+
+/* Tablet */
+@media (max-width: 1025px) {
+    #instructions {
+        margin-top: 0;
+    }
+    .flex {
+        flex-direction: column;
+    }
+}
+
+/* Smartphone */
+@media (max-width: 600px) {
+    #header_container {
+        flex-direction: column;
+    }
+
+    header {
+        text-align: start;
+    }
+}

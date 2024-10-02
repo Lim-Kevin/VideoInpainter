@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='result.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='video_base.css') }}">
+    <title>Video Inpainter</title>
+</head>
+<body>
+<header>
+    <a href="{{url_for('index')}}">Inpainter</a>
+</header>
+<div class="flex">
+    <div id="player_container">
+        <div id="video_player">
+            <div id="canvas_container">
+                <img id="slideshow"/>
+            </div>
+            <div id="seekbar">
+                <input type="range" id="slider" min="0" max="{{num_frames-1}}" value="0" list="markers"/>
+                <div id="markers"></div>
+            </div>
+            <div id="controls">
+                <button id="play_button" class="control_button">Play/Pause</button>
+                <button id="save_button" class="control_button" onclick="save_video()">Save video</button>
+                <button id="again_button" class="control_button" onclick="again()">Inpaint again</button>
+            </div>
+            <p id="frames_display">Frame: 1/{{num_frames}}</p>
+        </div>
+    </div>
+    <div id="instructions">
+        <h1>Instructions</h1>
+        <p>
+                    <strong>1. Select the area to inpaint:</strong> Start by identifying the person or object you want
+                    to remove. Use the <span class="material-symbols-outlined">edit</span>-tool to draw over any frame
+                    of the video.<br><br>
+
+                    <strong>2.</strong> The area you've selected will be highlighted in red, indicating the region that
+                    will be inpainted. Use the <span class="material-symbols-outlined">ink_eraser</span>-tool to adjust
+                    your selection. This allows you to remove any regions from the mask that you don't want
+                    inpainted.<br><br>
+
+                    <strong>3. Propagate the mask:</strong> Click the <em>Propagate</em>-button. This will extend the
+                    marked area across all frames of the video. After propagation you can add further scribbles to
+                    adjust the mask.<br><br>
+
+                    <strong>4. Inpaint the video:</strong> Once you are satisfied, you can click the <em>Inpaint</em>-button.
+                    The system will process the video and fill in the selected area with realistic content.<br><br>
+
+                    <strong>5.</strong> After the inpainting is complete, you can either download the final product or
+                    repeat the process to make additional adjustments.
+                </p>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{url_for('static', filename='slideshow.js')}}"></script>
+<script src="{{url_for('static', filename='result.js')}}" , fps="{{fps}}" , num_frames="{{num_frames}}", video_id="{{- video_id -}}"></script>
+</body>
+</html>
